@@ -65,23 +65,7 @@
 
     </style>
 </head>
-<body>
-
-<!-- SPLASH SCREEN -->
-<div id="splash-screen" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-[10000]">
-    <img src="logo_apotek_sejahtera.png" class="w-40 h-40 mb-6" alt="Logo Apotek">
-    <h1 class="text-xl font-bold text-green-700">Apotek Sejahtera</h1>
-    <p class="text-sm text-slate-500 mt-2">Memuat aplikasi...</p>
-</div>
-<script>
-window.addEventListener('load',()=>{
- setTimeout(()=>{
-  const s=document.getElementById('splash-screen');
-  if(s){s.style.opacity=0;setTimeout(()=>s.remove(),400);}
- },1200);
-});
-</script>
- class="text-slate-800 pb-10">
+<body class="text-slate-800 pb-10">
 
     <header class="sticky top-0 z-50 glass border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
@@ -584,50 +568,6 @@ window.addEventListener('load',()=>{
     <!-- TOAST CONTAINER -->
     <div id="toast-container"
          class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] space-y-3 w-[95%] max-w-md"></div>
-
-
-<!-- PROTEKSI VIEW SOURCE & DEVTOOLS -->
-<script>
-// Disable right click
-document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-    if (typeof showToast === 'function') {
-        showToast("Klik kanan dinonaktifkan", "warning");
-    }
-});
-
-// Disable common shortcuts
-document.addEventListener('keydown', function(e) {
-    if (
-        (e.ctrlKey && ['u','s','c','x','v'].includes(e.key.toLowerCase())) ||
-        e.key === 'F12'
-    ) {
-        e.preventDefault();
-        if (typeof showToast === 'function') {
-            showToast("Akses kode dibatasi", "warning");
-        }
-    }
-});
-
-// Detect DevTools (light deterrent)
-setInterval(() => {
-    const devtoolsOpen =
-        window.outerWidth - window.innerWidth > 160 ||
-        window.outerHeight - window.innerHeight > 160;
-    if (devtoolsOpen) {
-        document.body.style.filter = 'blur(6px)';
-    } else {
-        document.body.style.filter = 'none';
-    }
-}, 500);
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    document.title = "Apotek Sejahtera - Professional POS";
-});
-</script>
 
 </body>
 </html>
