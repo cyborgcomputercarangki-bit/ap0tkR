@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Apotek Reny - Professional POS</title>
+    <title>Apotek Sejahtera - Professional POS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -22,7 +22,6 @@
         .autocomplete-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f1f5f9; }
         .autocomplete-item:hover { background: #f8fafc; }
         
-        /* PERBAIKAN TAMPILAN TABEL MOBILE AGAR TIDAK MENUMPUK */
         @media (max-width: 640px) {
             .table-mobile thead { display: none; }
             .table-mobile tr { 
@@ -50,7 +49,7 @@
                 text-align: left;
                 margin-right: 15px;
             }
-            .item-list-wrap { max-width: 60%; line-height: 1.4; }
+            .item-list-wrap { max-width: 65%; line-height: 1.4; justify-content: flex-end; }
         }
 
         @media print {
@@ -58,6 +57,12 @@
             #receipt-print, #receipt-print * { visibility: visible; }
             #receipt-print { position: absolute; left: 0; top: 0; width: 80mm; font-family: monospace; font-size: 10pt; }
         }
+    
+        /* TOAST */
+        .toast{animation:slideIn .25s ease-out,fadeOut .25s ease-in forwards;animation-delay:0s,3s}
+        @keyframes slideIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+        @keyframes fadeOut{to{opacity:0;transform:translateY(20px)}}
+
     </style>
 </head>
 <body class="text-slate-800 pb-10">
@@ -68,7 +73,7 @@
                 <div class="bg-blue-600 p-2 rounded-lg text-white">
                     <i class="fas fa-prescription-bottle-alt text-sm"></i>
                 </div>
-                <h1 class="text-base font-bold">Apotek Reny <span class="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full ml-1 uppercase">Pro</span></h1>
+                <h1 class="text-base font-bold">Apotek Sejahtera <span class="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full ml-1 uppercase">Pro</span></h1>
             </div>
             <nav class="flex h-16">
                 <button onclick="showTab('kasir')" id="btn-kasir" class="nav-btn px-4 font-bold text-slate-500 tab-active flex items-center gap-2">
@@ -153,6 +158,12 @@
                     <h2 class="text-2xl font-black text-slate-800">Laporan Penjualan</h2>
                     <p class="text-slate-500 text-sm">Pantau performa apotek secara real-time</p>
                 </div>
+                <div class="flex gap-2 items-center bg-white p-2 rounded-2xl border border-slate-200">
+                    <input type="date" id="filter-mulai" class="text-xs p-2 outline-none">
+                    <span class="text-slate-400 text-xs">s/d</span>
+                    <input type="date" id="filter-selesai" class="text-xs p-2 outline-none">
+                    <button onclick="applyDateFilter()" class="bg-blue-600 text-white p-2 rounded-xl text-xs px-4">Filter</button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -205,15 +216,14 @@
             </div>
 
             <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
-                <div class="p-5 border-b border-slate-100"><h3 class="font-bold text-slate-700 text-sm">Riwayat Transaksi Terakhir</h3></div>
+                <div class="p-5 border-b border-slate-100 flex justify-between items-center"><h3 class="font-bold text-slate-700 text-sm">Riwayat Transaksi</h3></div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm table-mobile">
                         <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase border-b">
                             <tr>
-                                <th class="p-5">Waktu</th>
-                                <th class="p-5">Invoice</th>
+                                <th class="p-5">Waktu & Invoice</th>
                                 <th class="p-5">Rincian Obat</th>
-                                <th class="p-5 text-right">Total</th>
+                                <th class="p-5 text-right">Total Tagihan</th>
                             </tr>
                         </thead>
                         <tbody id="tabel-history" class="divide-y divide-slate-100"></tbody>
@@ -233,10 +243,11 @@
             <div id="admin-content" class="hidden space-y-6">
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-6">
-                        <h2 class="font-bold text-slate-700">Manajemen Obat & Expired</h2>
+                        <h2 id="admin-form-title" class="font-bold text-slate-700">Manajemen Inventaris</h2>
                         <button onclick="logoutAdmin()" class="text-xs text-red-500 font-bold uppercase">Logout</button>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <input type="hidden" id="admin-edit-id">
                         <input type="text" id="admin-nama" placeholder="Nama Obat" class="p-4 bg-slate-50 border rounded-2xl outline-none text-sm">
                         <input type="number" id="admin-harga-biji" placeholder="Ecer" class="p-4 bg-slate-50 border rounded-2xl outline-none text-sm">
                         <input type="number" id="admin-harga-box" placeholder="Box" class="p-4 bg-slate-50 border rounded-2xl outline-none text-sm">
@@ -246,10 +257,16 @@
                             <input type="date" id="admin-expired" class="p-3 bg-slate-50 border rounded-2xl outline-none text-sm">
                         </div>
                     </div>
-                    <button onclick="updateDataObat()" class="w-full mt-4 bg-blue-600 text-white py-4 rounded-2xl font-bold">Simpan ke Sistem</button>
+                    <div class="flex gap-2 mt-4">
+                        <button onclick="updateDataObat()" id="btn-admin-submit" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-bold">Simpan ke Sistem</button>
+                        <button onclick="resetAdminForm()" id="btn-admin-cancel" class="hidden px-6 bg-slate-200 text-slate-600 py-4 rounded-2xl font-bold">Batal</button>
+                    </div>
                 </div>
 
                 <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="p-4 bg-slate-50 border-b flex justify-between items-center">
+                        <input type="text" id="search-stok" onkeyup="filterTabelStok()" placeholder="Cari di tabel stok..." class="p-2 px-4 rounded-xl border text-xs outline-none w-full max-w-xs">
+                    </div>
                     <table class="w-full text-left table-mobile">
                         <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase">
                             <tr><th class="p-4">Produk</th><th class="p-4">Harga</th><th class="p-4 text-center">Stok</th><th class="p-4">Expired</th><th class="p-4 text-right">Aksi</th></tr>
@@ -264,7 +281,20 @@
     <div id="receipt-print" class="hidden"></div>
 
     <script>
-        const MASTER_PASS = "reny123";
+        
+    function showToast(msg,type='info'){
+        const c=document.getElementById('toast-container');
+        if(!c) return;
+        const col={success:'bg-emerald-500',error:'bg-red-500',warning:'bg-orange-500',info:'bg-blue-500'}[type];
+        const d=document.createElement('div');
+        d.className=`toast ${col} text-white px-5 py-4 rounded-2xl shadow-lg flex gap-3 items-center text-sm font-bold`;
+        d.innerHTML=`<i class="fas ${type==='success'?'fa-check-circle':type==='error'?'fa-times-circle':type==='warning'?'fa-exclamation-circle':'fa-info-circle'}"></i><span>${msg}</span>`;
+        c.appendChild(d);
+        setTimeout(()=>d.remove(),3500);
+    }
+
+
+        const MASTER_PASS = "apsejahtera123";
         const firebaseConfig = {
             apiKey: "AIzaSyCfi8bqVns9WvdrbTMVcJkYcKn-w1lX-Go",
             authDomain: "ap0tik-reny.firebaseapp.com",
@@ -278,8 +308,17 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         let dataObatGlobal = {};
+        let dataHistoryGlobal = {};
         let keranjang = [];
         let totalTagihan = 0;
+
+        // FUNGSI BARU: Mendapatkan Tanggal Lokal Format YYYY-MM-DD
+        function getLocalDateString() {
+            const now = new Date();
+            const offset = now.getTimezoneOffset() * 60000; 
+            const localISOTime = (new Date(now - offset)).toISOString().split('T')[0];
+            return localISOTime;
+        }
 
         function showTab(id) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -288,14 +327,13 @@
             document.getElementById('btn-' + id).classList.add('tab-active');
         }
 
-        db.ref('obat').on('value', (s) => { if(s.exists()) { dataObatGlobal = s.val(); renderAdminTable(); } });
+        db.ref('obat').on('value', (s) => { dataObatGlobal = s.val() || {}; renderAdminTable(); });
         db.ref('history').on('value', (s) => { 
-            const val = s.val() || {};
-            renderHistory(val); 
-            calculateStats(val); 
-            renderAllRekap(val);
+            dataHistoryGlobal = s.val() || {};
+            applyDateFilter();
         });
 
+        // KASIR LOGIC
         const inpSearch = document.getElementById('input-search');
         const listSearch = document.getElementById('autocomplete-list');
 
@@ -309,7 +347,6 @@
                 if(it.nama.toLowerCase().includes(v)) {
                     const d = document.createElement('div');
                     d.className = 'autocomplete-item';
-                    
                     const expDate = it.expired ? new Date(it.expired) : null;
                     const diffDays = expDate ? Math.ceil((expDate - new Date()) / (1000 * 60 * 60 * 24)) : null;
                     let expBadge = `<span class="text-[9px] text-slate-400">Exp: ${it.expired || '-'}</span>`;
@@ -317,23 +354,8 @@
                         if(diffDays < 0) expBadge = `<span class="text-[9px] text-white bg-red-600 px-1 rounded">EXPIRED!</span>`;
                         else if(diffDays < 90) expBadge = `<span class="text-[9px] text-white bg-orange-500 px-1 rounded font-bold">Hampir Exp</span>`;
                     }
-
-                    d.innerHTML = `
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <div class="font-bold text-slate-700 text-sm">${it.nama}</div>
-                                <div class="flex gap-2 items-center">
-                                    <span class="text-[9px] ${it.stok < 10 ? 'text-red-500' : 'text-blue-500'} font-bold">Stok: ${it.stok}</span>
-                                    ${expBadge}
-                                </div>
-                            </div>
-                            <div class="text-[10px] text-right">Rp${it.harga_biji.toLocaleString()} / pcs</div>
-                        </div>`;
-                    d.onclick = () => {
-                        inpSearch.value = it.nama;
-                        document.getElementById('selected-id').value = k;
-                        listSearch.classList.add('hidden');
-                    };
+                    d.innerHTML = `<div class="flex justify-between items-center"><div><div class="font-bold text-slate-700 text-sm">${it.nama}</div><div class="flex gap-2 items-center"><span class="text-[9px] ${it.stok < 10 ? 'text-red-500' : 'text-blue-500'} font-bold">Stok: ${it.stok}</span>${expBadge}</div></div><div class="text-[10px] text-right">Rp${it.harga_biji.toLocaleString()} / pcs</div></div>`;
+                    d.onclick = () => { inpSearch.value = it.nama; document.getElementById('selected-id').value = k; listSearch.classList.add('hidden'); };
                     listSearch.appendChild(d);
                 }
             });
@@ -348,12 +370,11 @@
             const id = document.getElementById('selected-id').value;
             const qty = parseInt(document.getElementById('input-qty').value);
             const satuan = document.getElementById('input-satuan').value;
-            if(!id) return alert("Pilih obat dulu!");
+            if(!id) return showToast("Pilih obat dulu!", "warning");
             const it = dataObatGlobal[id];
+            if(it.stok < qty) return showToast("Stok tidak cukup!", "error");
             const harga = (satuan === 'biji') ? it.harga_biji : it.harga_box;
-            const expVal = it.expired || ""; 
-
-            keranjang.push({ id: id, nama: it.nama, qty: qty, satuan: satuan, harga: harga, expired: expVal, subtotal: harga * qty });
+            keranjang.push({ id: id, nama: it.nama, qty: qty, satuan: satuan, harga: harga, expired: it.expired || "", subtotal: harga * qty });
             renderKeranjang();
             inpSearch.value = ''; document.getElementById('selected-id').value = '';
         }
@@ -364,15 +385,7 @@
             if(keranjang.length === 0) b.innerHTML = '<p class="text-center text-slate-300 italic py-4">Belum ada item</p>';
             keranjang.forEach((it, i) => {
                 totalTagihan += it.subtotal;
-                b.innerHTML += `
-                    <div class="bg-slate-50 p-3 rounded-2xl flex justify-between items-center text-xs border border-slate-100">
-                        <div>
-                            <div class="font-bold">${it.nama}</div>
-                            <div class="text-[9px] text-slate-400">Exp: ${it.expired || '-'}</div>
-                            <div class="text-blue-500 font-bold">${it.qty} ${it.satuan} @${it.harga.toLocaleString()}</div>
-                        </div>
-                        <div class="flex items-center gap-3 font-bold text-slate-700">Rp${it.subtotal.toLocaleString()} <button onclick="hapusItem(${i})" class="text-red-300"><i class="fas fa-times-circle"></i></button></div>
-                    </div>`;
+                b.innerHTML += `<div class="bg-slate-50 p-3 rounded-2xl flex justify-between items-center text-xs border border-slate-100"><div><div class="font-bold">${it.nama}</div><div class="text-[9px] text-slate-400">Exp: ${it.expired || '-'}</div><div class="text-blue-500 font-bold">${it.qty} ${it.satuan} @${it.harga.toLocaleString()}</div></div><div class="flex items-center gap-3 font-bold text-slate-700">Rp${it.subtotal.toLocaleString()} <button onclick="hapusItem(${i})" class="text-red-300"><i class="fas fa-times-circle"></i></button></div></div>`;
             });
             document.getElementById('total-harga').innerText = "Rp " + totalTagihan.toLocaleString();
             hitungKembalian();
@@ -388,32 +401,61 @@
         async function prosesCheckout() {
             if(keranjang.length === 0) return;
             const tunai = parseInt(document.getElementById('input-tunai').value) || 0;
-            if(tunai < totalTagihan) return alert("Uang tunai tidak cukup!");
+            if(tunai < totalTagihan) return showToast("Uang tunai tidak cukup!", "error");
+            
             const n = new Date();
-            const up = {};
+            const localDate = getLocalDateString(); // Gunakan fungsi tanggal lokal
+            const updates = {};
             const inv = 'INV-' + n.getTime();
-            const h = { invoice: inv, timestamp: n.getTime(), tanggal: n.toISOString().split('T')[0], bulan: n.toISOString().substring(0,7), tahun: n.toISOString().substring(0,4), items: keranjang, total: totalTagihan, tunai, kembali: tunai - totalTagihan };
-            keranjang.forEach(it => { up[`/obat/${it.id}/stok`] = (dataObatGlobal[it.id].stok || 0) - it.qty; });
-            try {
-                await db.ref().update(up);
-                await db.ref('history').push(h);
-                cetakStruk(h);
-                alert("Berhasil!");
-                keranjang = []; document.getElementById('input-tunai').value = ''; renderKeranjang();
-            } catch(e) { alert("Gagal: " + e.message); }
+            
+            const h = { 
+                invoice: inv, 
+                timestamp: n.getTime(), 
+                tanggal: localDate, 
+                bulan: localDate.substring(0,7), 
+                tahun: localDate.substring(0,4), 
+                items: keranjang, 
+                total: totalTagihan, 
+                tunai, 
+                kembali: tunai - totalTagihan 
+            };
+
+            keranjang.forEach(it => { updates[`/obat/${it.id}/stok`] = (dataObatGlobal[it.id].stok || 0) - it.qty; });
+
+            try { 
+                await db.ref().update(updates); 
+                await db.ref('history').push(h); 
+                cetakStruk(h); 
+                showToast("Transaksi berhasil", "success"); 
+                keranjang = []; document.getElementById('input-tunai').value = ''; renderKeranjang(); 
+            } catch(e) { showToast("Gagal: " + e.message, "error"); }
         }
 
         function cetakStruk(data) {
             const printArea = document.getElementById('receipt-print');
             let itemHtml = '';
             data.items.forEach(it => { itemHtml += `<div>${it.nama.substring(0,25)}<br>${it.qty} x ${it.harga.toLocaleString()} = ${it.subtotal.toLocaleString()}</div><br>`; });
-            printArea.innerHTML = `<div style="text-align:center"><b>APOTEK RENY</b><br>---<br>ID: ${data.invoice}<br>Tgl: ${new Date(data.timestamp).toLocaleString('id-ID')}<br>---<br></div>${itemHtml}---<br><b>TOTAL: Rp ${data.total.toLocaleString()}</b><br>TUNAI: Rp ${data.tunai.toLocaleString()}<br>---<br><div style="text-align:center">Lekas Sembuh</div>`;
+            printArea.innerHTML = `<div style="text-align:center"><b>APOTEK SEJAHTERA</b><br>---<br>ID: ${data.invoice}<br>Tgl: ${new Date(data.timestamp).toLocaleString('id-ID')}<br>---<br></div>${itemHtml}---<br><b>TOTAL: Rp ${data.total.toLocaleString()}</b><br>TUNAI: Rp ${data.tunai.toLocaleString()}<br>---<br><div style="text-align:center">Lekas Sembuh</div>`;
             window.print();
         }
 
+        // LAPORAN LOGIC
+        function applyDateFilter() {
+            const start = document.getElementById('filter-mulai').value;
+            const end = document.getElementById('filter-selesai').value;
+            let filtered = dataHistoryGlobal;
+            if(start && end) {
+                filtered = Object.fromEntries(
+                    Object.entries(dataHistoryGlobal).filter(([key, val]) => val.tanggal >= start && val.tanggal <= end)
+                );
+            }
+            renderHistory(filtered);
+            calculateStats(dataHistoryGlobal);
+            renderAllRekap(filtered);
+        }
+
         function calculateStats(h) {
-            const n = new Date().toISOString();
-            const hI = n.split('T')[0], bI = hI.substring(0,7), tI = hI.substring(0,4);
+            const hI = getLocalDateString(), bI = hI.substring(0,7), tI = hI.substring(0,4);
             let th=0, tb=0, tt=0;
             Object.values(h).forEach(d => {
                 if(d.tanggal === hI) th += d.total;
@@ -430,105 +472,102 @@
             const trBulanan = document.getElementById('tabel-rekap-bulanan');
             const trTahunan = document.getElementById('tabel-rekap-tahunan');
             trHarian.innerHTML = ''; trBulanan.innerHTML = ''; trTahunan.innerHTML = '';
-            const rekapHarian = {}, rekapBulanan = {}, rekapTahunan = {};
+            const rH = {}, rB = {}, rT = {};
             Object.values(h).forEach(d => {
-                rekapHarian[d.tanggal] = (rekapHarian[d.tanggal] || 0) + d.total;
-                rekapBulanan[d.bulan] = (rekapBulanan[d.bulan] || 0) + d.total;
-                rekapTahunan[d.tahun] = (rekapTahunan[d.tahun] || 0) + d.total;
+                const parts = d.tanggal.split('-');
+                const tglId = parts[2] + '-' + parts[1] + '-' + parts[0];
+                rH[tglId] = (rH[tglId] || 0) + d.total;
+                rB[d.bulan] = (rB[d.bulan] || 0) + d.total;
+                rT[d.tahun] = (rT[d.tahun] || 0) + d.total;
             });
-            Object.keys(rekapHarian).sort().reverse().forEach(tgl => {
-                trHarian.innerHTML += `<tr><td class="p-3 font-bold">${tgl}</td><td class="p-3 text-right font-black text-blue-600">Rp ${rekapHarian[tgl].toLocaleString()}</td></tr>`;
+            Object.keys(rH).reverse().forEach(tgl => {
+                trHarian.innerHTML += `<tr><td class="p-3 font-bold">${tgl}</td><td class="p-3 text-right font-black text-blue-600">Rp ${rH[tgl].toLocaleString()}</td></tr>`;
             });
-            Object.keys(rekapBulanan).sort().reverse().forEach(bln => {
-                trBulanan.innerHTML += `<tr class="hover:bg-emerald-50"><td class="p-3 font-bold">${bln}</td><td class="p-3 text-right font-black text-emerald-600">Rp ${rekapBulanan[bln].toLocaleString()}</td></tr>`;
+            Object.keys(rB).sort().reverse().forEach(bln => {
+                trBulanan.innerHTML += `<tr class="hover:bg-emerald-50"><td class="p-3 font-bold">${bln}</td><td class="p-3 text-right font-black text-emerald-600">Rp ${rB[bln].toLocaleString()}</td></tr>`;
             });
-            Object.keys(rekapTahunan).sort().reverse().forEach(thn => {
-                trTahunan.innerHTML += `<tr class="hover:bg-orange-50"><td class="p-3 font-bold">${thn}</td><td class="p-3 text-right font-black text-orange-600">Rp ${rekapTahunan[thn].toLocaleString()}</td></tr>`;
+            Object.keys(rT).sort().reverse().forEach(thn => {
+                trTahunan.innerHTML += `<tr class="hover:bg-orange-50"><td class="p-3 font-bold">${thn}</td><td class="p-3 text-right font-black text-orange-600">Rp ${rT[thn].toLocaleString()}</td></tr>`;
             });
         }
 
-        // FUNGSI RENDER HISTORY YANG SUDAH DIRAPIKAN AGAR TIDAK MENUMPUK
         function renderHistory(h) {
             const tb = document.getElementById('tabel-history');
             tb.innerHTML = '';
-            const sortedHistory = Object.keys(h).map(key => ({...h[key], firebaseKey: key}))
-                .sort((a, b) => b.timestamp - a.timestamp);
-
-            sortedHistory.forEach(d => {
+            const sorted = Object.keys(h).map(key => ({...h[key], firebaseKey: key})).sort((a, b) => b.timestamp - a.timestamp);
+            sorted.forEach(d => {
                 const jam = new Date(d.timestamp).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
-                const r = d.items.map(i => `<span class="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold">${i.nama} (${i.qty})</span>`).join(' ');
-                
-                tb.innerHTML += `
-                    <tr>
-                        <td class="p-5" data-label="Waktu">
-                            <div class="text-xs font-bold">${d.tanggal}</div>
-                            <div class="text-[10px] text-slate-400">${jam}</div>
-                        </td>
-                        <td class="p-5" data-label="Invoice">
-                            <span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-mono">${d.invoice}</span>
-                        </td>
-                        <td class="p-5" data-label="Obat">
-                            <div class="item-list-wrap flex flex-wrap gap-1">${r}</div>
-                        </td>
-                        <td class="p-5 text-right" data-label="Total">
-                            <div class="font-black text-slate-900 text-sm">Rp ${d.total.toLocaleString()}</div>
-                        </td>
-                    </tr>`;
+                const parts = d.tanggal.split('-');
+                const tglIndo = parts[2] + '-' + parts[1] + '-' + parts[0];
+                const items = d.items.map(i => `<span class="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold">${i.nama} (${i.qty})</span>`).join(' ');
+                tb.innerHTML += `<tr><td class="p-5" data-label="Waktu & Invoice"><div class="text-xs font-bold text-slate-800">${tglIndo} <span class="text-slate-400 font-normal">| ${jam}</span></div><div class="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded inline-block font-mono mt-1">${d.invoice}</div></td><td class="p-5" data-label="Rincian Obat"><div class="item-list-wrap flex flex-wrap gap-1">${items}</div></td><td class="p-5 text-right" data-label="Total Tagihan"><div class="font-black text-slate-900 text-sm">Rp ${d.total.toLocaleString()}</div></td></tr>`;
             });
         }
 
+        // ADMIN LOGIC
         function loginAdmin() {
             if(document.getElementById('admin-pass').value === MASTER_PASS) {
                 document.getElementById('admin-auth').classList.add('hidden');
                 document.getElementById('admin-content').classList.remove('hidden');
-            } else alert("Salah!");
+            } else showToast("Password admin salah", "error");
         }
-        function logoutAdmin() {
-            document.getElementById('admin-auth').classList.remove('hidden');
-            document.getElementById('admin-content').classList.add('hidden');
-        }
+        function logoutAdmin() { document.getElementById('admin-auth').classList.remove('hidden'); document.getElementById('admin-content').classList.add('hidden'); }
 
         async function updateDataObat() {
+            const idEdit = document.getElementById('admin-edit-id').value;
             const nama = document.getElementById('admin-nama').value;
             const hb = parseInt(document.getElementById('admin-harga-biji').value);
             const hbx = parseInt(document.getElementById('admin-harga-box').value) || 0;
             const stok = parseInt(document.getElementById('admin-stok').value) || 0;
             const exp = document.getElementById('admin-expired').value || "";
-            if(!nama || isNaN(hb)) return alert("Nama & Harga Biji wajib!");
-            const id = nama.toLowerCase().replace(/\s+/g, '-');
+            if(!nama || isNaN(hb)) return showToast("Nama & Harga wajib!", "warning");
+            const id = idEdit || nama.toLowerCase().replace(/\s+/g, '-');
             await db.ref('obat/' + id).set({ nama, harga_biji: hb, harga_box: hbx, stok, expired: exp });
-            alert("Tersimpan!");
-            ['admin-nama', 'admin-harga-biji', 'admin-harga-box', 'admin-stok', 'admin-expired'].forEach(id => document.getElementById(id).value = '');
+            showToast("Data obat tersimpan", "success");
+            resetAdminForm();
         }
+
+        function resetAdminForm() {
+            ['admin-nama', 'admin-harga-biji', 'admin-harga-box', 'admin-stok', 'admin-expired', 'admin-edit-id'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('admin-form-title').innerText = "Tambah Obat Baru";
+            document.getElementById('btn-admin-submit').innerText = "Simpan ke Sistem";
+            document.getElementById('btn-admin-cancel').classList.add('hidden');
+        }
+
+        function editObat(id) {
+            const it = dataObatGlobal[id];
+            document.getElementById('admin-edit-id').value = id;
+            document.getElementById('admin-nama').value = it.nama;
+            document.getElementById('admin-harga-biji').value = it.harga_biji;
+            document.getElementById('admin-harga-box').value = it.harga_box;
+            document.getElementById('admin-stok').value = it.stok;
+            document.getElementById('admin-expired').value = it.expired || "";
+            document.getElementById('admin-form-title').innerText = "Edit Obat: " + it.nama;
+            document.getElementById('btn-admin-submit').innerText = "Update Data";
+            document.getElementById('btn-admin-cancel').classList.remove('hidden');
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        async function hapusObat(id) { if(window.confirm("Hapus data obat ini?")) { await db.ref("obat/" + id).remove(); showToast("Data obat dihapus","success"); } }
 
         function renderAdminTable() {
             const tb = document.getElementById('tabel-stok');
             tb.innerHTML = '';
             Object.keys(dataObatGlobal).forEach(k => {
                 const it = dataObatGlobal[k];
-                tb.innerHTML += `
-                    <tr>
-                        <td class="p-4 font-bold" data-label="Produk">${it.nama}</td>
-                        <td class="p-4" data-label="Harga">Ecer: ${it.harga_biji}<br>Box: ${it.harga_box}</td>
-                        <td class="p-4 text-center font-bold" data-label="Stok">${it.stok}</td>
-                        <td class="p-4" data-label="Exp">${it.expired || '-'}</td>
-                        <td class="p-4 text-right">
-                            <button onclick="editAdmin('${k}')" class="text-blue-500 mr-2"><i class="fas fa-edit"></i></button>
-                            <button onclick="db.ref('obat/${k}').remove()" class="text-red-500"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>`;
+                tb.innerHTML += `<tr class="stok-row" data-name="${it.nama.toLowerCase()}"><td class="p-4 font-bold" data-label="Produk">${it.nama}</td><td class="p-4" data-label="Harga">Ecer: ${it.harga_biji.toLocaleString()}<br>Box: ${it.harga_box.toLocaleString()}</td><td class="p-4 text-center" data-label="Stok"><span class="${it.stok < 10 ? 'text-red-500 font-bold' : ''}">${it.stok}</span></td><td class="p-4" data-label="Expired">${it.expired || '-'}</td><td class="p-4 text-right" data-label="Aksi"><button onclick="editObat('${k}')" class="text-blue-500 mr-2"><i class="fas fa-edit"></i></button><button onclick="hapusObat('${k}')" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>`;
             });
         }
 
-        function editAdmin(id) {
-            const it = dataObatGlobal[id];
-            document.getElementById('admin-nama').value = it.nama;
-            document.getElementById('admin-harga-biji').value = it.harga_biji;
-            document.getElementById('admin-harga-box').value = it.harga_box;
-            document.getElementById('admin-stok').value = it.stok;
-            document.getElementById('admin-expired').value = it.expired || '';
-            window.scrollTo(0,0);
+        function filterTabelStok() {
+            const q = document.getElementById('search-stok').value.toLowerCase();
+            document.querySelectorAll('.stok-row').forEach(row => { row.classList.toggle('hidden', !row.dataset.name.includes(q)); });
         }
     </script>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container"
+         class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] space-y-3 w-[95%] max-w-md"></div>
+
 </body>
 </html>
