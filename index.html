@@ -13,11 +13,11 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
         .glass { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); }
         
-        .nav-btn { font-weight: 700; color: #64748b; transition: 0.3s; border-bottom: 3px solid transparent; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .nav-btn { font-weight: 700; color: #64748b; transition: 0.3s; border-bottom: 3px solid transparent; height: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .tab-active { color: #2563eb; border-bottom-color: #2563eb; background: rgba(37, 99, 235, 0.05); }
 
         @media (max-width: 768px) {
-            .nav-btn { flex: 1; font-size: 12px; }
+            .nav-btn { flex: 1; font-size: 11px; flex-direction: column; gap: 2px; }
             .header-container { flex-direction: column; }
             .stat-card { padding: 1.5rem; border-radius: 2rem; }
         }
@@ -68,9 +68,15 @@
                 </div>
             </div>
             <nav class="flex w-full md:w-auto h-12 md:h-20 border-t md:border-none">
-                <button onclick="showTab('kasir')" id="btn-kasir" class="nav-btn tab-active">KASIR</button>
-                <button onclick="showTab('history')" id="btn-history" class="nav-btn">LAPORAN</button>
-                <button onclick="showTab('admin')" id="btn-admin" class="nav-btn">ADMIN</button>
+                <button onclick="showTab('kasir')" id="btn-kasir" class="nav-btn tab-active">
+                    <i class="fas fa-cash-register"></i><span>KASIR</span>
+                </button>
+                <button onclick="showTab('history')" id="btn-history" class="nav-btn">
+                    <i class="fas fa-chart-line"></i><span>LAPORAN</span>
+                </button>
+                <button onclick="showTab('admin')" id="btn-admin" class="nav-btn">
+                    <i class="fas fa-user-shield"></i><span>ADMIN</span>
+                </button>
             </nav>
         </div>
     </header>
@@ -256,13 +262,11 @@
         function getFormattedDate(dateObj) { const d = dateObj || getWITA(); return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`; }
         function getISOForInput(dateObj) { const d = dateObj || getWITA(); return d.toISOString().split('T')[0]; }
 
-        // Fetch Data Obat
         db.ref('obat').on('value', (s) => { 
             dataObatGlobal = s.val() || {}; 
             renderAdminTable(); 
         });
 
-        // Fetch Data History & Update Laporan
         db.ref('history').on('value', (s) => { 
             dataHistoryGlobal = s.val() || {}; 
             initLaporanDefault(); 
@@ -276,7 +280,6 @@
             if(id === 'kasir') setTimeout(() => document.getElementById('input-search').focus(), 100);
         }
 
-        // KASIR LOGIC
         const inpS = document.getElementById('input-search');
         const listS = document.getElementById('autocomplete-list');
         const areaSatuan = document.getElementById('area-satuan');
@@ -363,7 +366,6 @@
             keranjang = []; document.getElementById('input-tunai').value = ''; renderKeranjang(); showToast("Transaksi Berhasil", "success");
         }
 
-        // LAPORAN LOGIC
         function initLaporanDefault() {
             const now = getWITA();
             if(!document.getElementById('filter-hari').value) {
@@ -414,7 +416,6 @@
             window.print();
         }
 
-        // ADMIN LOGIC
         function loginAdmin() { if(document.getElementById('admin-pass').value === MASTER_PASS) { document.getElementById('admin-auth').classList.add('hidden'); document.getElementById('admin-content').classList.remove('hidden'); } else showToast("PIN SALAH", "error"); }
         function logoutAdmin() { document.getElementById('admin-auth').classList.remove('hidden'); document.getElementById('admin-content').classList.add('hidden'); }
         
@@ -440,7 +441,7 @@
             const hb = parseInt(document.getElementById('admin-harga-biji').value); 
             if(!n || isNaN(hb)) return; 
             const id = idEdit || n.toLowerCase().replace(/\s+/g, '-'); 
-            await db.ref('obat/' + id).set({ nama:n, harga_biji:hb, harga_box:parseInt(document.getElementById('admin-harga-box').value)||0, stok:parseInt(document.getElementById('admin-stok').value)||0, expired:document.getElementById('admin-expired').value }); 
+            await db.ref('obat/' + id).set({ nama:n, harga_biji:hb, harga_box:parseInt(document.getElementById('admin-harga_box').value)||0, stok:parseInt(document.getElementById('admin-stok').value)||0, expired:document.getElementById('admin-expired').value }); 
             resetAdminForm(); showToast("Berhasil Disimpan", "success");
         }
 
@@ -458,4 +459,3 @@
     </script>
 </body>
 </html>
-
