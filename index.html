@@ -10,41 +10,68 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; overflow-x: hidden; }
         .glass { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); }
-        .tab-active { color: #2563eb; border-bottom: 3px solid #2563eb; background: rgba(37, 99, 235, 0.05); }
+        
+        .nav-btn { font-weight: 700; color: #64748b; transition: 0.3s; border-bottom: 3px solid transparent; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .tab-active { color: #2563eb; border-bottom-color: #2563eb; background: rgba(37, 99, 235, 0.05); }
+
+        @media (max-width: 768px) {
+            .nav-btn { flex: 1; font-size: 12px; }
+            .header-container { flex-direction: column; }
+            .stat-card { padding: 1.5rem; border-radius: 2rem; }
+        }
+        @media (min-width: 769px) {
+            .nav-btn { padding: 0 1.5rem; font-size: 14px; }
+            .stat-card { padding: 2rem; border-radius: 2.5rem; }
+        }
+
         .hidden { display: none !important; }
-        .stat-card { background: white; padding: 2rem; border-radius: 2.5rem; border: 1px solid #e2e8f0; position: relative; overflow: hidden; }
-        .badge-stock { background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 11px; border: 1px solid #bfdbfe; }
-        .badge-exp { background: #ffedd5; color: #9a3412; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 11px; border: 1px solid #fed7aa; }
-        .autocomplete-item.selected { background-color: #f0f7ff; border-left: 6px solid #2563eb; }
+        .stat-card { background: white; border: 1px solid #e2e8f0; position: relative; overflow: hidden; }
+        
+        .badge-stock { background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 11px; }
+        .badge-exp { background: #ffedd5; color: #9a3412; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 11px; }
+
         .autocomplete-items { position: absolute; border-radius: 1.5rem; max-height: 450px; overflow-y: auto; z-index: 100; top: 105%; left: 0; right: 0; background: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); border: 1px solid #e2e8f0; }
         .autocomplete-item { padding: 18px 20px; cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: 0.2s; }
-        input[type="date"], input[type="month"], input[type="number"].year-input { border: none; background: #f1f5f9; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; color: #475569; outline: none; }
+        .autocomplete-item.selected { background-color: #f0f7ff; border-left: 6px solid #2563eb; }
+
+        input[type="date"], input[type="month"], input[type="number"].year-input { border: none; background: #f1f5f9; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 800; color: #475569; outline: none; }
+        
         .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
-        .modal-content { animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
         @media print { 
             body * { visibility: hidden; } 
             #receipt-print, #receipt-print * { visibility: visible; } 
             #receipt-print { position: fixed; left: 0; top: 0; width: 80mm; display: block !important; padding: 5mm; } 
         }
-        #receipt-print { display: none; font-family: 'Courier New', monospace; font-size: 10px; }
+        #receipt-print { display: none; font-family: 'Courier New', monospace; font-size: 12px; }
+
+        /* Animation for Update Button */
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin-custom { animation: spin 1s linear infinite; }
     </style>
 </head>
 <body class="text-slate-800 pb-10">
 
     <header class="sticky top-0 z-50 glass border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <div class="bg-blue-600 p-2 rounded-lg text-white"><i class="fas fa-prescription-bottle-alt"></i></div>
-                <h1 class="text-base font-extrabold uppercase tracking-tighter text-slate-800">Apotek <span class="text-blue-600">Sejahtera</span></h1>
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center h-auto md:h-20">
+            <div class="flex flex-col items-center md:items-start py-3 md:py-0">
+                <div class="flex items-center gap-2">
+                    <div class="bg-blue-600 p-2 rounded-lg text-white"><i class="fas fa-prescription-bottle-alt"></i></div>
+                    <h1 class="text-base font-extrabold uppercase tracking-tighter">Apotek <span class="text-blue-600">Sejahtera</span></h1>
+                </div>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="text-[9px] font-black bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md border border-slate-200 uppercase">v.02</span>
+                    <button onclick="checkUpdateSystem(this)" class="flex items-center gap-1 text-[9px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 transition-all active:scale-95">
+                        <i class="fas fa-sync-alt" id="update-icon"></i> <span>CEK UPDATE</span>
+                    </button>
+                </div>
             </div>
-            <nav class="flex h-16">
-                <button onclick="showTab('kasir')" id="btn-kasir" class="nav-btn px-6 font-bold text-slate-500 tab-active">KASIR</button>
-                <button onclick="showTab('history')" id="btn-history" class="nav-btn px-6 font-bold text-slate-500">LAPORAN</button>
-                <button onclick="showTab('admin')" id="btn-admin" class="nav-btn px-6 font-bold text-slate-500">ADMIN</button>
+            <nav class="flex w-full md:w-auto h-12 md:h-20 border-t md:border-none">
+                <button onclick="showTab('kasir')" id="btn-kasir" class="nav-btn tab-active">KASIR</button>
+                <button onclick="showTab('history')" id="btn-history" class="nav-btn">LAPORAN</button>
+                <button onclick="showTab('admin')" id="btn-admin" class="nav-btn">ADMIN</button>
             </nav>
         </div>
     </header>
@@ -52,16 +79,16 @@
     <main class="max-w-7xl mx-auto p-4 md:p-8">
         <section id="tab-kasir" class="tab-content grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200">
+                <div class="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-sm border border-slate-200">
                     <h2 class="font-black text-2xl mb-6">Cari Obat</h2>
                     <div class="relative mb-6">
                         <i class="fas fa-search absolute left-6 top-1/2 -translate-y-1/2 text-slate-400"></i>
                         <input id="input-search" type="text" placeholder="Ketik nama obat..." autocomplete="off"
-                               class="w-full p-6 pl-16 bg-slate-50 border-2 border-slate-100 rounded-3xl outline-none focus:border-blue-500 focus:bg-white text-lg font-bold">
+                               class="w-full p-5 md:p-6 pl-14 md:pl-16 bg-slate-50 border-2 border-slate-100 rounded-2xl md:rounded-3xl outline-none focus:border-blue-500 focus:bg-white text-lg font-bold">
                         <div id="autocomplete-list" class="autocomplete-items hidden"></div>
                     </div>
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100 outline-none focus:ring-4 focus:ring-blue-200 transition-all" id="area-satuan" tabindex="0">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100 outline-none" id="area-satuan" tabindex="0">
                             <label class="text-[10px] font-black text-blue-400 uppercase mb-3 block text-center">Satuan (Panah L/R)</label>
                             <div class="flex gap-4">
                                 <label class="flex-1 cursor-pointer"><input type="radio" name="satuan" value="biji" id="radio-biji" checked class="hidden peer"><div class="p-4 text-center rounded-2xl border-2 border-white bg-white peer-checked:border-blue-600 peer-checked:text-blue-600 font-black shadow-sm uppercase text-xs">Biji</div></label>
@@ -69,18 +96,18 @@
                             </div>
                         </div>
                         <div class="bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
-                            <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block text-center">Jumlah Beli (Enter)</label>
+                            <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block text-center">Jumlah Beli</label>
                             <input type="number" id="input-qty" value="1" min="1" class="w-full bg-transparent text-4xl font-black outline-none text-center focus:text-blue-600">
                         </div>
                     </div>
-                    <button onclick="tambahKeKeranjang()" class="w-full mt-8 bg-slate-900 text-white font-black py-6 rounded-3xl hover:bg-blue-600 shadow-xl transition-all">TAMBAHKAN (ENTER)</button>
+                    <button onclick="tambahKeKeranjang()" class="w-full mt-8 bg-slate-900 text-white font-black py-5 md:py-6 rounded-2xl md:rounded-3xl hover:bg-blue-600 shadow-xl transition-all uppercase tracking-widest">TAMBAHKAN (ENTER)</button>
                 </div>
             </div>
             
             <div class="lg:col-span-1">
-                <div class="bg-white p-8 rounded-[2.5rem] shadow-2xl border border-slate-100 sticky top-24">
+                <div class="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border border-slate-100 sticky top-28">
                     <h2 class="font-black text-xl mb-6">Keranjang</h2>
-                    <div id="list-keranjang" class="space-y-3 mb-8 max-h-[35vh] overflow-y-auto pr-2"></div>
+                    <div id="list-keranjang" class="space-y-3 mb-8 max-h-[40vh] overflow-y-auto pr-2"></div>
                     <div class="pt-6 border-t-2 border-dashed border-slate-100 space-y-4">
                         <div class="flex justify-between items-end"><span class="text-xs font-bold text-slate-400 uppercase">Total Bayar</span><span id="total-harga" class="text-3xl font-black text-blue-600">Rp 0</span></div>
                         <input type="number" id="input-tunai" onkeyup="hitungKembalian()" placeholder="Uang Tunai..." class="w-full p-5 bg-emerald-50 text-emerald-700 border-2 border-emerald-100 rounded-2xl outline-none font-black text-2xl text-center">
@@ -95,38 +122,42 @@
         </section>
 
         <section id="tab-history" class="tab-content hidden space-y-8">
-            <div>
+            <div class="text-center md:text-left">
                 <h2 class="text-3xl font-black text-slate-800">Laporan Penjualan</h2>
-                <p class="text-slate-400 text-sm font-semibold">Semua Riwayat (Format Seragam & GMT+8)</p>
+                <p class="text-slate-400 text-sm font-semibold uppercase tracking-widest mt-1">Sistem Real-Time GMT+8</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="stat-card border-b-8 border-blue-500">
-                    <div class="flex justify-between items-start mb-4">
+                    <div class="flex justify-between items-center mb-4">
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Harian</p>
                         <input type="date" id="filter-hari" onchange="updateLaporanHarian()">
                     </div>
                     <h3 id="stat-hari-val" class="text-3xl font-black text-slate-800">Rp 0</h3>
                 </div>
                 <div class="stat-card border-b-8 border-emerald-500">
-                    <div class="flex justify-between items-start mb-4">
+                    <div class="flex justify-between items-center mb-4">
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bulanan</p>
                         <input type="month" id="filter-bulan" onchange="updateLaporanBulanan()">
                     </div>
                     <h3 id="stat-bulan-val" class="text-3xl font-black text-slate-800">Rp 0</h3>
                 </div>
                 <div class="stat-card border-b-8 border-orange-500">
-                    <div class="flex justify-between items-start mb-4">
+                    <div class="flex justify-between items-center mb-4">
                         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tahunan</p>
-                        <input type="number" id="filter-tahun" value="2025" min="2020" max="2099" class="year-input w-20" onchange="updateLaporanTahunan()">
+                        <input type="number" id="filter-tahun" value="2025" min="2020" max="2099" class="year-input w-24" onchange="updateLaporanTahunan()">
                     </div>
                     <h3 id="stat-tahun-val" class="text-3xl font-black text-slate-800">Rp 0</h3>
                 </div>
             </div>
             <div class="bg-white rounded-[2.5rem] border overflow-hidden shadow-sm">
-                <div class="p-8 border-b bg-slate-50/50 flex justify-between items-center">
+                <div class="p-6 md:p-8 border-b bg-slate-50/50 flex justify-between items-center">
                     <h3 class="font-black text-slate-700 uppercase text-xs">Riwayat Transaksi</h3>
                 </div>
-                <div class="overflow-x-auto"><table class="w-full text-left"><tbody id="tabel-history-raw" class="divide-y text-sm font-semibold"></tbody></table></div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left min-w-[600px]">
+                        <tbody id="tabel-history-raw" class="divide-y text-sm font-semibold"></tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -134,11 +165,14 @@
             <div id="admin-auth" class="max-w-md mx-auto bg-white p-12 rounded-[3rem] shadow-2xl border text-center mt-10">
                 <h2 class="text-2xl font-black mb-6 text-slate-800">Akses Admin</h2>
                 <input type="password" id="admin-pass" onkeypress="if(event.key === 'Enter') loginAdmin()" placeholder="PIN..." class="w-full p-5 bg-slate-50 border-2 rounded-2xl mb-6 text-center outline-none font-bold text-2xl text-blue-600">
-                <button onclick="loginAdmin()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black">MASUK</button>
+                <button onclick="loginAdmin()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black uppercase tracking-widest">MASUK</button>
             </div>
             <div id="admin-content" class="hidden space-y-8">
                 <div class="bg-white p-8 rounded-[2.5rem] border">
-                    <div class="flex justify-between items-center mb-10"><h2 id="admin-form-title" class="text-2xl font-black">Input Obat</h2><button onclick="logoutAdmin()" class="text-red-500 font-bold bg-red-50 px-4 py-2 rounded-xl text-xs uppercase">Logout</button></div>
+                    <div class="flex justify-between items-center mb-10">
+                        <h2 id="admin-form-title" class="text-2xl font-black uppercase">Input Data Obat</h2>
+                        <button onclick="logoutAdmin()" class="text-red-500 font-bold bg-red-50 px-4 py-2 rounded-xl text-xs uppercase">Logout</button>
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                         <input type="hidden" id="admin-edit-id">
                         <input type="text" id="admin-nama" placeholder="Nama Obat" class="p-4 bg-slate-50 border rounded-2xl font-bold">
@@ -147,7 +181,7 @@
                         <input type="number" id="admin-stok" placeholder="Stok" class="p-4 bg-slate-50 border rounded-2xl font-bold">
                         <input type="date" id="admin-expired" class="p-4 bg-slate-50 border rounded-2xl font-bold">
                     </div>
-                    <button onclick="updateDataObat()" id="btn-admin-submit" class="w-full mt-10 bg-blue-600 text-white py-5 rounded-2xl font-black shadow-lg">SIMPAN DATA</button>
+                    <button onclick="updateDataObat()" id="btn-admin-submit" class="w-full mt-10 bg-blue-600 text-white py-5 rounded-2xl font-black shadow-lg uppercase tracking-widest">SIMPAN PERUBAHAN</button>
                     <button onclick="resetAdminForm()" id="btn-admin-cancel" class="hidden w-full mt-2 bg-slate-100 py-3 rounded-2xl font-black text-slate-500">BATAL</button>
                 </div>
                 
@@ -155,12 +189,12 @@
                     <div class="p-8 border-b flex flex-col md:flex-row justify-between items-center bg-slate-50/50 gap-4">
                         <div class="relative w-full md:w-80 order-2 md:order-1">
                             <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input type="text" id="search-stok" onkeyup="filterTabelStok()" placeholder="Cari obat di sini..." class="w-full p-4 pl-12 rounded-2xl border-2 outline-none font-bold text-xs focus:border-blue-500 transition-all">
+                            <input type="text" id="search-stok" onkeyup="filterTabelStok()" placeholder="Cari di database..." class="w-full p-4 pl-12 rounded-2xl border-2 outline-none font-bold text-xs focus:border-blue-500 transition-all">
                         </div>
-                        <h3 class="font-black text-slate-700 uppercase text-xs order-1 md:order-2">Database Stok & Expired</h3>
+                        <h3 class="font-black text-slate-700 uppercase text-xs order-1 md:order-2">Stok & Kadaluarsa</h3>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left">
+                        <table class="w-full text-left min-w-[700px]">
                             <thead class="bg-white text-[10px] font-black text-slate-400 uppercase border-b">
                                 <tr>
                                     <th class="p-6">Nama Obat</th>
@@ -179,9 +213,9 @@
     </main>
 
     <div id="modal-stock" class="fixed inset-0 z-[100] modal-overlay hidden flex items-center justify-center p-4">
-        <div class="modal-content bg-white w-full max-w-sm rounded-[3rem] p-10 shadow-2xl text-center">
-            <h3 class="text-xl font-black mb-2 text-slate-800">Tambah Stok</h3>
-            <p id="modal-stock-name" class="text-blue-600 font-bold text-sm mb-6 uppercase"></p>
+        <div class="bg-white w-full max-w-sm rounded-[3rem] p-10 shadow-2xl text-center">
+            <h3 class="text-xl font-black mb-2">Update Stok</h3>
+            <p id="modal-stock-name" class="text-blue-600 font-bold text-xs mb-6 uppercase tracking-widest"></p>
             <div class="bg-slate-50 p-6 rounded-3xl border-2 mb-8">
                 <input type="number" id="modal-stock-input" class="w-full bg-transparent text-5xl font-black outline-none text-center" placeholder="0">
             </div>
@@ -193,7 +227,6 @@
     </div>
 
     <div id="receipt-print"></div>
-
     <div id="toast-container" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[9999] space-y-2 text-center w-full max-w-xs"></div>
 
     <script>
@@ -210,32 +243,24 @@
         let dataObatGlobal = {}, dataHistoryGlobal = {}, keranjang = [];
         let currentModalId = null;
 
-        function getWITA() {
-            const d = new Date();
-            const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-            return new Date(utc + (3600000 * 8));
+        // Function for Checking Update (Hard Refresh)
+        function checkUpdateSystem(btn) {
+            const icon = document.getElementById('update-icon');
+            icon.classList.add('animate-spin-custom');
+            btn.querySelector('span').innerText = "MENGECEK...";
+            
+            showToast("Mencari pembaruan di server...", "success");
+
+            setTimeout(() => {
+                // Logic: Force reload from server bypassing cache
+                window.location.reload(true);
+            }, 1500);
         }
 
-        function formatSafeDate(dateStr) {
-            if(!dateStr) return "-";
-            if(dateStr.includes("-") && dateStr.split("-")[0].length === 4) {
-                const [y, m, d] = dateStr.split("-");
-                return `${d}-${m}-${y}`;
-            }
-            return dateStr;
-        }
-
-        function getFormattedDate(dateObj) {
-            const d = dateObj || getWITA();
-            const day = String(d.getDate()).padStart(2, '0');
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            return `${day}-${month}-${d.getFullYear()}`;
-        }
-
-        function getISOForInput(dateObj) {
-            const d = dateObj || getWITA();
-            return d.toISOString().split('T')[0];
-        }
+        function getWITA() { const d = new Date(); const utc = d.getTime() + (d.getTimezoneOffset() * 60000); return new Date(utc + (3600000 * 8)); }
+        function formatSafeDate(dateStr) { if(!dateStr) return "-"; if(dateStr.includes("-") && dateStr.split("-")[0].length === 4) { const [y, m, d] = dateStr.split("-"); return `${d}-${m}-${y}`; } return dateStr; }
+        function getFormattedDate(dateObj) { const d = dateObj || getWITA(); const day = String(d.getDate()).padStart(2, '0'); const month = String(d.getMonth() + 1).padStart(2, '0'); return `${day}-${month}-${d.getFullYear()}`; }
+        function getISOForInput(dateObj) { const d = dateObj || getWITA(); return d.toISOString().split('T')[0]; }
 
         db.ref('obat').on('value', (s) => { dataObatGlobal = s.val() || {}; renderAdminTable(); });
         db.ref('history').on('value', (s) => { dataHistoryGlobal = s.val() || {}; initLaporanDefault(); });
@@ -246,6 +271,7 @@
             document.getElementById('tab-' + id).classList.remove('hidden');
             document.getElementById('btn-' + id).classList.add('tab-active');
             if(id === 'kasir') setTimeout(() => document.getElementById('input-search').focus(), 100);
+            window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
         // KASIR LOGIC
@@ -288,7 +314,7 @@
                 if (it.nama.toLowerCase().includes(val)) {
                     const div = document.createElement('div');
                     div.className = 'autocomplete-item';
-                    div.innerHTML = `<div class="flex justify-between items-center"><div><div class="font-black text-xl">${it.nama}</div><div class="flex gap-2 mt-1"><span class="badge-stock">STOK: ${it.stok}</span><span class="badge-exp">EXP: ${it.expired || '-'}</span></div></div><div class="font-black text-blue-600">Rp${it.harga_biji.toLocaleString()}</div></div>`;
+                    div.innerHTML = `<div class="flex justify-between items-center"><div><div class="font-black text-xl">${it.nama}</div><div class="flex gap-2 mt-1"><span class="badge-stock">STOK: ${it.stok}</span><span class="badge-exp">EXP: ${it.expired || '-'}</span></div></div><div class="font-black text-blue-600 text-lg">Rp${it.harga_biji.toLocaleString()}</div></div>`;
                     div.onclick = () => { inpS.value = it.nama; inpS.dataset.id = k; listS.classList.add('hidden'); areaSatuan.focus(); };
                     listS.appendChild(div);
                 }
@@ -297,92 +323,59 @@
         });
 
         function tambahKeKeranjang() {
-            const id = inpS.dataset.id;
-            const qty = parseInt(inpQty.value);
-            const satuan = document.querySelector('input[name="satuan"]:checked').value;
-            if(!id || qty <= 0) return;
-            const it = dataObatGlobal[id];
-            const harga = satuan === 'biji' ? it.harga_biji : it.harga_box;
+            const id = inpS.dataset.id; const qty = parseInt(inpQty.value); const satuan = document.querySelector('input[name="satuan"]:checked').value;
+            if(!id || qty <= 0) return; const it = dataObatGlobal[id]; const harga = satuan === 'biji' ? it.harga_biji : it.harga_box;
             keranjang.push({ id, nama: it.nama, qty, satuan, harga, subtotal: harga * qty });
             renderKeranjang(); inpS.value = ''; delete inpS.dataset.id; inpQty.value = 1; inpS.focus();
         }
 
         function renderKeranjang() {
-            const c = document.getElementById('list-keranjang');
-            c.innerHTML = ''; let t = 0;
+            const c = document.getElementById('list-keranjang'); c.innerHTML = ''; let t = 0;
             keranjang.forEach((it, i) => {
                 t += it.subtotal;
-                c.innerHTML += `<div class="bg-slate-50 p-4 rounded-2xl flex justify-between mb-2 shadow-sm border"><div class="text-xs font-black">${it.nama}<br><span class="text-blue-500">${it.qty} ${it.satuan}</span></div><div class="flex items-center gap-4 font-black text-xs">Rp${it.subtotal.toLocaleString()}<button onclick="keranjang.splice(${i},1);renderKeranjang()" class="text-red-300"><i class="fas fa-times-circle text-lg"></i></button></div></div>`;
+                c.innerHTML += `<div class="bg-slate-50 p-4 rounded-2xl flex justify-between mb-2 border shadow-sm"><div class="text-xs font-black">${it.nama}<br><span class="text-blue-500">${it.qty} ${it.satuan}</span></div><div class="flex items-center gap-4 font-black text-xs">Rp${it.subtotal.toLocaleString()}<button onclick="keranjang.splice(${i},1);renderKeranjang()" class="text-red-300 hover:text-red-500 transition-colors"><i class="fas fa-times-circle text-lg"></i></button></div></div>`;
             });
             document.getElementById('total-harga').innerText = "Rp " + t.toLocaleString();
             window.totalT = t; hitungKembalian();
         }
 
-        function hitungKembalian() {
-            const t = parseInt(document.getElementById('input-tunai').value) || 0;
-            const k = t - (window.totalT || 0);
-            document.getElementById('text-kembalian').innerText = "Rp " + (k < 0 ? 0 : k).toLocaleString();
-        }
+        function hitungKembalian() { const t = parseInt(document.getElementById('input-tunai').value) || 0; const k = t - (window.totalT || 0); document.getElementById('text-kembalian').innerText = "Rp " + (k < 0 ? 0 : k).toLocaleString(); }
 
         async function prosesCheckout() {
-            if(keranjang.length === 0) return;
-            const tunai = parseInt(document.getElementById('input-tunai').value) || 0;
+            if(keranjang.length === 0) return; const tunai = parseInt(document.getElementById('input-tunai').value) || 0;
             if(tunai < window.totalT) { showToast("Uang Kurang", "error"); return; }
-            
-            const now = getWITA();
-            const updates = {};
+            const now = getWITA(); const updates = {};
             keranjang.forEach(it => { updates[`/obat/${it.id}/stok`] = (dataObatGlobal[it.id].stok || 0) - it.qty; });
             await db.ref().update(updates);
-            
-            await db.ref('history').push({ 
-                tanggal: getFormattedDate(now),
-                isoDate: getISOForInput(now),
-                bulan: getISOForInput(now).substring(0,7),
-                tahun: now.getFullYear().toString(),
-                total: window.totalT, items: keranjang, timestamp: now.getTime(), tunai: tunai 
-            });
-            
-            keranjang = []; document.getElementById('input-tunai').value = ''; renderKeranjang();
-            showToast("Transaksi Berhasil Disimpan", "success"); inpS.focus();
+            await db.ref('history').push({ tanggal: getFormattedDate(now), isoDate: getISOForInput(now), bulan: getISOForInput(now).substring(0,7), tahun: now.getFullYear().toString(), total: window.totalT, items: keranjang, timestamp: now.getTime(), tunai: tunai });
+            keranjang = []; document.getElementById('input-tunai').value = ''; renderKeranjang(); showToast("Transaksi Berhasil Disimpan", "success"); inpS.focus();
         }
 
-        // LAPORAN LOGIC
         function initLaporanDefault() {
             const now = getWITA();
             document.getElementById('filter-hari').value = getISOForInput(now);
             document.getElementById('filter-bulan').value = getISOForInput(now).substring(0, 7);
             document.getElementById('filter-tahun').value = now.getFullYear();
-            updateLaporanHarian(); updateLaporanBulanan(); updateLaporanTahunan();
-            renderTabelHistory(dataHistoryGlobal);
+            updateLaporanHarian(); updateLaporanBulanan(); updateLaporanTahunan(); renderTabelHistory(dataHistoryGlobal);
         }
 
         function renderTabelHistory(h) {
             const tr = document.getElementById('tabel-history-raw'); tr.innerHTML = '';
             const sortedKeys = Object.keys(h).sort((a,b)=>h[b].timestamp-h[a].timestamp);
-            
             sortedKeys.forEach(k => {
-                const d = h[k];
-                const items = d.items.map(it => `<div class="flex justify-between border-b pb-1"><span>${it.nama}</span><span>x${it.qty}</span></div>`).join('');
-                tr.innerHTML += `<tr>
-                    <td class="p-6"><div>${formatSafeDate(d.tanggal)}</div><div class="text-[10px] text-slate-400">${new Date(d.timestamp).toLocaleTimeString('id-ID')}</div></td>
-                    <td class="p-6"><div class="max-w-xs text-[10px]">${items}</div></td>
-                    <td class="p-6 text-right font-black">
-                        <div>Rp ${d.total.toLocaleString()}</div>
-                        <button onclick="cetakUlang('${k}')" class="text-[9px] text-blue-500 font-bold uppercase mt-1 bg-blue-50 px-2 py-1 rounded">Cetak Struk</button>
-                    </td></tr>`;
+                const d = h[k]; const items = d.items.map(it => `<div class="flex justify-between border-b pb-1"><span>${it.nama}</span><span>x${it.qty}</span></div>`).join('');
+                tr.innerHTML += `<tr><td class="p-6"><div>${formatSafeDate(d.tanggal)}</div><div class="text-[10px] text-slate-400">${new Date(d.timestamp).toLocaleTimeString('id-ID')}</div></td><td class="p-6"><div class="max-w-xs text-[10px]">${items}</div></td><td class="p-6 text-right font-black"><div>Rp ${d.total.toLocaleString()}</div><button onclick="cetakUlang('${k}')" class="text-[10px] text-blue-500 font-bold uppercase mt-1 bg-blue-50 px-3 py-1 rounded">Cetak Struk</button></td></tr>`;
             });
         }
 
         function cetakUlang(key) {
-            const d = dataHistoryGlobal[key];
-            const pr = document.getElementById('receipt-print');
+            const d = dataHistoryGlobal[key]; const pr = document.getElementById('receipt-print');
             pr.innerHTML = `<div style="text-align:center"><strong>APOTEK SEJAHTERA</strong><br>${d.tanggal}<br>${new Date(d.timestamp).toLocaleTimeString()}</div><hr>` + 
                            d.items.map(i=>`<div>${i.nama} x${i.qty}<br> @${i.harga.toLocaleString()} = ${i.subtotal.toLocaleString()}</div>`).join('') + 
                            `<hr><strong>TOTAL: Rp ${d.total.toLocaleString()}</strong><br>Tunai: Rp ${d.tunai ? d.tunai.toLocaleString() : '-'}<hr><div style="text-align:center">Terima Kasih</div>`;
-            window.print(); // Ini hanya dipanggil jika Anda benar-benar mengklik tombol Cetak
+            window.print();
         }
 
-        // --- ADMIN & MODAL ---
         function loginAdmin() { if(document.getElementById('admin-pass').value === MASTER_PASS) { document.getElementById('admin-auth').classList.add('hidden'); document.getElementById('admin-content').classList.remove('hidden'); } else showToast("PIN SALAH", "error"); }
         function logoutAdmin() { document.getElementById('admin-auth').classList.remove('hidden'); document.getElementById('admin-content').classList.add('hidden'); }
         function renderAdminTable() {
@@ -391,7 +384,7 @@
                 const it = dataObatGlobal[k];
                 tb.innerHTML += `<tr class="stok-row" data-name="${it.nama.toLowerCase()}">
                     <td class="p-6 font-black">${it.nama}</td><td class="p-6 text-xs">E: ${it.harga_biji.toLocaleString()}<br>B: ${it.harga_box.toLocaleString()}</td>
-                    <td class="p-6 text-center"><span class="text-xl font-black ${it.stok<10?'text-red-500':'text-blue-600'}">${it.stok}</span><br><button onclick="openStockModal('${k}')" class="mt-1 text-blue-600 bg-blue-50 px-3 py-1 rounded-xl text-[10px] font-black uppercase">Tambah</button></td>
+                    <td class="p-6 text-center"><span class="text-xl font-black ${it.stok<10?'text-red-500':'text-blue-600'}">${it.stok}</span><br><button onclick="openStockModal('${k}')" class="mt-2 text-blue-600 bg-blue-50 px-3 py-1 rounded-xl text-[10px] font-black uppercase">Tambah</button></td>
                     <td class="p-6"><span class="badge-exp">${it.expired || '-'}</span></td><td class="p-6 text-right"><button onclick="editObat('${k}')" class="text-blue-400 mr-4"><i class="fas fa-edit"></i></button><button onclick="hapusObat('${k}')" class="text-red-300"><i class="fas fa-trash"></i></button></td></tr>`;
             });
         }
