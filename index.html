@@ -3,66 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Apotek Sejahtera - Professional POS</title>
+    <title>Apotek Sejahtera - Pro POS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; -webkit-tap-highlight-color: transparent; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
         .glass { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); }
         .tab-active { color: #2563eb; border-bottom: 3px solid #2563eb; background: rgba(37, 99, 235, 0.05); }
-        .hidden { display: none; }
-        .autocomplete-items {
-            position: absolute; border-radius: 1rem; max-height: 400px; overflow-y: auto;
-            z-index: 100; top: 100%; left: 0; right: 0; background: white;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; margin-top: 5px;
-        }
-        .autocomplete-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f1f5f9; }
-        .autocomplete-item:hover { background: #f8fafc; }
+        .hidden { display: none !important; }
+        .stat-card { background: white; padding: 2rem; border-radius: 2.5rem; border: 1px solid #e2e8f0; position: relative; overflow: hidden; }
+        .badge-stock { background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 11px; border: 1px solid #bfdbfe; }
+        .badge-exp { background: #ffedd5; color: #9a3412; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 11px; border: 1px solid #fed7aa; }
+        .autocomplete-item.selected { background-color: #f0f7ff; border-left: 6px solid #2563eb; }
+        .autocomplete-items { position: absolute; border-radius: 1.5rem; max-height: 450px; overflow-y: auto; z-index: 100; top: 105%; left: 0; right: 0; background: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); border: 1px solid #e2e8f0; }
+        .autocomplete-item { padding: 18px 20px; cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: 0.2s; }
+        input[type="date"], input[type="month"], input[type="number"].year-input { border: none; background: #f1f5f9; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; color: #475569; outline: none; }
+        .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+        .modal-content { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        @media (max-width: 640px) {
-            .table-mobile thead { display: none; }
-            .table-mobile tr { 
-                display: block; 
-                margin-bottom: 1rem; 
-                background: white; 
-                border-radius: 1rem; 
-                padding: 12px; 
-                border: 1px solid #e2e8f0;
-            }
-            .table-mobile td { 
-                display: flex; 
-                justify-content: space-between; 
-                align-items: center;
-                padding: 8px 4px; 
-                border: none !important;
-                text-align: right;
-            }
-            .table-mobile td::before { 
-                content: attr(data-label); 
-                font-weight: 800; 
-                color: #64748b; 
-                font-size: 10px; 
-                text-transform: uppercase; 
-                text-align: left;
-                margin-right: 15px;
-            }
-            .item-list-wrap { max-width: 65%; line-height: 1.4; justify-content: flex-end; }
+        @media print { 
+            body * { visibility: hidden; } 
+            #receipt-print, #receipt-print * { visibility: visible; } 
+            #receipt-print { position: fixed; left: 0; top: 0; width: 80mm; display: block !important; padding: 5mm; } 
         }
-
-        @media print {
-            body * { visibility: hidden; }
-            #receipt-print, #receipt-print * { visibility: visible; }
-            #receipt-print { position: absolute; left: 0; top: 0; width: 80mm; font-family: monospace; font-size: 10pt; }
-        }
-    
-        /* TOAST */
-        .toast{animation:slideIn .25s ease-out,fadeOut .25s ease-in forwards;animation-delay:0s,3s}
-        @keyframes slideIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
-        @keyframes fadeOut{to{opacity:0;transform:translateY(20px)}}
-
+        #receipt-print { display: none; font-family: 'Courier New', monospace; font-size: 10px; }
     </style>
 </head>
 <body class="text-slate-800 pb-10">
@@ -70,504 +38,375 @@
     <header class="sticky top-0 z-50 glass border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
             <div class="flex items-center gap-2">
-                <div class="bg-blue-600 p-2 rounded-lg text-white">
-                    <i class="fas fa-prescription-bottle-alt text-sm"></i>
-                </div>
-                <h1 class="text-base font-bold">Apotek Sejahtera <span class="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full ml-1 uppercase">Pro</span></h1>
+                <div class="bg-blue-600 p-2 rounded-lg text-white"><i class="fas fa-prescription-bottle-alt"></i></div>
+                <h1 class="text-base font-extrabold uppercase tracking-tighter text-slate-800">Apotek <span class="text-blue-600">Sejahtera</span></h1>
             </div>
             <nav class="flex h-16">
-                <button onclick="showTab('kasir')" id="btn-kasir" class="nav-btn px-4 font-bold text-slate-500 tab-active flex items-center gap-2">
-                    <i class="fas fa-cash-register"></i> <span class="hidden md:inline">Kasir</span>
-                </button>
-                <button onclick="showTab('history')" id="btn-history" class="nav-btn px-4 font-bold text-slate-500 flex items-center gap-2">
-                    <i class="fas fa-history"></i> <span class="hidden md:inline">Laporan</span>
-                </button>
-                <button onclick="showTab('admin')" id="btn-admin" class="nav-btn px-4 font-bold text-slate-500 flex items-center gap-2">
-                    <i class="fas fa-tools"></i> <span class="hidden md:inline">Admin</span>
-                </button>
+                <button onclick="showTab('kasir')" id="btn-kasir" class="nav-btn px-6 font-bold text-slate-500 tab-active">KASIR</button>
+                <button onclick="showTab('history')" id="btn-history" class="nav-btn px-6 font-bold text-slate-500">LAPORAN</button>
+                <button onclick="showTab('admin')" id="btn-admin" class="nav-btn px-6 font-bold text-slate-500">ADMIN</button>
             </nav>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto p-4 md:p-6">
-        
-        <section id="tab-kasir" class="tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 space-y-4">
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="font-bold text-slate-700">Pencarian Cepat</h2>
+    <main class="max-w-7xl mx-auto p-4 md:p-8">
+        <section id="tab-kasir" class="tab-content grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200">
+                    <h2 class="font-black text-2xl mb-6">Cari Obat</h2>
+                    <div class="relative mb-6">
+                        <i class="fas fa-search absolute left-6 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input id="input-search" type="text" placeholder="Ketik nama obat..." autocomplete="off"
+                               class="w-full p-6 pl-16 bg-slate-50 border-2 border-slate-100 rounded-3xl outline-none focus:border-blue-500 focus:bg-white text-lg font-bold">
+                        <div id="autocomplete-list" class="autocomplete-items hidden"></div>
                     </div>
-                    
-                    <div class="space-y-4">
-                        <div class="relative">
-                            <input id="input-search" type="text" placeholder="Ketik nama obat atau kategori..." 
-                                class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition text-sm">
-                            <div id="autocomplete-list" class="autocomplete-items hidden"></div>
-                            <input type="hidden" id="selected-id">
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Jumlah</label>
-                                <input type="number" id="input-qty" value="1" min="1" inputmode="numeric" class="w-full mt-1 p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-center outline-none">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Jenis Penjualan</label>
-                                <select id="input-satuan" class="w-full mt-1 p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-blue-600 outline-none appearance-none">
-                                    <option value="box" selected>Grosir (Box/Pack)</option>
-                                    <option value="biji">Eceran (Biji/Pcs)</option>
-                                </select>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100 outline-none focus:ring-4 focus:ring-blue-200 transition-all" id="area-satuan" tabindex="0">
+                            <label class="text-[10px] font-black text-blue-400 uppercase mb-3 block text-center">Satuan (Panah L/R)</label>
+                            <div class="flex gap-4">
+                                <label class="flex-1 cursor-pointer"><input type="radio" name="satuan" value="biji" id="radio-biji" checked class="hidden peer"><div class="p-4 text-center rounded-2xl border-2 border-white bg-white peer-checked:border-blue-600 peer-checked:text-blue-600 font-black shadow-sm uppercase text-xs">Biji</div></label>
+                                <label class="flex-1 cursor-pointer"><input type="radio" name="satuan" value="box" id="radio-box" class="hidden peer"><div class="p-4 text-center rounded-2xl border-2 border-white bg-white peer-checked:border-blue-600 peer-checked:text-blue-600 font-black shadow-sm uppercase text-xs">Box</div></label>
                             </div>
                         </div>
-                        
-                        <button onclick="tambahKeKeranjang()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 active:scale-[0.98] transition">
-                            <i class="fas fa-plus mr-2"></i> Tambahkan ke Daftar
-                        </button>
+                        <div class="bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
+                            <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block text-center">Jumlah Beli (Enter)</label>
+                            <input type="number" id="input-qty" value="1" min="1" class="w-full bg-transparent text-4xl font-black outline-none text-center focus:text-blue-600">
+                        </div>
                     </div>
+                    <button onclick="tambahKeKeranjang()" class="w-full mt-8 bg-slate-900 text-white font-black py-6 rounded-3xl hover:bg-blue-600 shadow-xl transition-all">TAMBAHKAN (ENTER)</button>
                 </div>
             </div>
-
+            
             <div class="lg:col-span-1">
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-blue-100 sticky top-24">
-                    <h2 class="font-bold mb-4 text-slate-700">Struk Belanja</h2>
-                    <div id="list-keranjang" class="space-y-2 mb-6 max-h-[40vh] overflow-y-auto">
-                        <p class="text-center text-slate-300 italic py-4 text-sm">Belum ada item</p>
-                    </div>
-                    
-                    <div class="space-y-3 pt-4 border-t border-slate-100">
-                        <div class="flex justify-between text-lg font-black text-slate-900">
-                            <span>TOTAL</span>
-                            <span id="total-harga" class="text-blue-600">Rp 0</span>
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-2xl border border-slate-100 sticky top-24">
+                    <h2 class="font-black text-xl mb-6">Keranjang</h2>
+                    <div id="list-keranjang" class="space-y-3 mb-8 max-h-[35vh] overflow-y-auto pr-2"></div>
+                    <div class="pt-6 border-t-2 border-dashed border-slate-100 space-y-4">
+                        <div class="flex justify-between items-end"><span class="text-xs font-bold text-slate-400 uppercase">Total Bayar</span><span id="total-harga" class="text-3xl font-black text-blue-600">Rp 0</span></div>
+                        <input type="number" id="input-tunai" onkeyup="hitungKembalian()" placeholder="Uang Tunai..." class="w-full p-5 bg-emerald-50 text-emerald-700 border-2 border-emerald-100 rounded-2xl outline-none font-black text-2xl text-center">
+                        <div class="flex justify-between items-center p-5 bg-slate-900 rounded-2xl text-white">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Kembali</span>
+                            <span id="text-kembalian" class="text-2xl font-black text-emerald-400">Rp 0</span>
                         </div>
-                        <input type="number" id="input-tunai" onkeyup="hitungKembalian()" inputmode="numeric" placeholder="Uang Tunai..." class="w-full p-4 bg-blue-50 border border-blue-100 rounded-2xl outline-none font-black text-xl text-blue-700 text-center">
-                        <div class="flex justify-between items-center p-4 bg-slate-900 rounded-2xl text-white">
-                            <span class="text-xs font-bold text-slate-400">KEMBALI</span>
-                            <span id="text-kembalian" class="text-xl font-black text-emerald-400">Rp 0</span>
-                        </div>
-                        <button onclick="prosesCheckout()" class="w-full bg-emerald-500 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-[0.98] transition">
-                            SIMPAN & CETAK STRUK
-                        </button>
+                        <button onclick="prosesCheckout()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl shadow-lg uppercase tracking-widest">Simpan Transaksi</button>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="tab-history" class="tab-content hidden space-y-6">
-            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                    <h2 class="text-2xl font-black text-slate-800">Laporan Penjualan</h2>
-                    <p class="text-slate-500 text-sm">Pantau performa apotek secara real-time</p>
-                </div>
-                <div class="flex gap-2 items-center bg-white p-2 rounded-2xl border border-slate-200">
-                    <input type="date" id="filter-mulai" class="text-xs p-2 outline-none">
-                    <span class="text-slate-400 text-xs">s/d</span>
-                    <input type="date" id="filter-selesai" class="text-xs p-2 outline-none">
-                    <button onclick="applyDateFilter()" class="bg-blue-600 text-white p-2 rounded-xl text-xs px-4">Filter</button>
-                </div>
+        <section id="tab-history" class="tab-content hidden space-y-8">
+            <div>
+                <h2 class="text-3xl font-black text-slate-800">Laporan Penjualan</h2>
+                <p class="text-slate-400 text-sm font-semibold">Semua Riwayat (Format Seragam & GMT+8)</p>
             </div>
-
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white p-6 rounded-3xl shadow-sm border-b-4 border-blue-500">
-                    <div class="flex items-center gap-4 mb-2">
-                        <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center"><i class="fas fa-calendar-day"></i></div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Hari Ini</p>
+                <div class="stat-card border-b-8 border-blue-500">
+                    <div class="flex justify-between items-start mb-4">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Harian</p>
+                        <input type="date" id="filter-hari" onchange="updateLaporanHarian()">
                     </div>
-                    <h3 id="stat-hari" class="text-2xl font-black text-slate-800">Rp 0</h3>
+                    <h3 id="stat-hari-val" class="text-3xl font-black text-slate-800">Rp 0</h3>
                 </div>
-                <div class="bg-white p-6 rounded-3xl shadow-sm border-b-4 border-emerald-500">
-                    <div class="flex items-center gap-4 mb-2">
-                        <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center"><i class="fas fa-calendar-alt"></i></div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Bulan Ini</p>
+                <div class="stat-card border-b-8 border-emerald-500">
+                    <div class="flex justify-between items-start mb-4">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bulanan</p>
+                        <input type="month" id="filter-bulan" onchange="updateLaporanBulanan()">
                     </div>
-                    <h3 id="stat-bulan" class="text-2xl font-black text-slate-800">Rp 0</h3>
+                    <h3 id="stat-bulan-val" class="text-3xl font-black text-slate-800">Rp 0</h3>
                 </div>
-                <div class="bg-white p-6 rounded-3xl shadow-sm border-b-4 border-orange-500">
-                    <div class="flex items-center gap-4 mb-2">
-                        <div class="w-10 h-10 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center"><i class="fas fa-chart-line"></i></div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tahun Ini</p>
+                <div class="stat-card border-b-8 border-orange-500">
+                    <div class="flex justify-between items-start mb-4">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tahunan</p>
+                        <input type="number" id="filter-tahun" value="2025" min="2020" max="2099" class="year-input w-20" onchange="updateLaporanTahunan()">
                     </div>
-                    <h3 id="stat-tahun" class="text-2xl font-black text-slate-800">Rp 0</h3>
+                    <h3 id="stat-tahun-val" class="text-3xl font-black text-slate-800">Rp 0</h3>
                 </div>
             </div>
+            <div class="bg-white rounded-[2.5rem] border overflow-hidden shadow-sm">
+                <div class="p-8 border-b bg-slate-50/50 flex justify-between items-center">
+                    <h3 class="font-black text-slate-700 uppercase text-xs">Riwayat Transaksi</h3>
+                </div>
+                <div class="overflow-x-auto"><table class="w-full text-left"><tbody id="tabel-history-raw" class="divide-y text-sm font-semibold"></tbody></table></div>
+            </div>
+        </section>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
-                    <div class="p-5 border-b border-slate-100 bg-blue-50/50"><h3 class="font-bold text-blue-800 text-sm italic uppercase">Rekap Harian</h3></div>
-                    <div class="max-h-64 overflow-y-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-50 sticky top-0 font-bold text-slate-400 uppercase border-b">
-                                <tr><th class="p-3">Tanggal</th><th class="p-3 text-right">Total</th></tr>
+        <section id="tab-admin" class="tab-content hidden">
+            <div id="admin-auth" class="max-w-md mx-auto bg-white p-12 rounded-[3rem] shadow-2xl border text-center mt-10">
+                <h2 class="text-2xl font-black mb-6 text-slate-800">Akses Admin</h2>
+                <input type="password" id="admin-pass" onkeypress="if(event.key === 'Enter') loginAdmin()" placeholder="PIN..." class="w-full p-5 bg-slate-50 border-2 rounded-2xl mb-6 text-center outline-none font-bold text-2xl text-blue-600">
+                <button onclick="loginAdmin()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black">MASUK</button>
+            </div>
+            <div id="admin-content" class="hidden space-y-8">
+                <div class="bg-white p-8 rounded-[2.5rem] border">
+                    <div class="flex justify-between items-center mb-10"><h2 id="admin-form-title" class="text-2xl font-black">Input Obat</h2><button onclick="logoutAdmin()" class="text-red-500 font-bold bg-red-50 px-4 py-2 rounded-xl text-xs uppercase">Logout</button></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                        <input type="hidden" id="admin-edit-id">
+                        <input type="text" id="admin-nama" placeholder="Nama Obat" class="p-4 bg-slate-50 border rounded-2xl font-bold">
+                        <input type="number" id="admin-harga-biji" placeholder="Harga Biji" class="p-4 bg-slate-50 border rounded-2xl font-bold">
+                        <input type="number" id="admin-harga-box" placeholder="Harga Box" class="p-4 bg-slate-50 border rounded-2xl font-bold">
+                        <input type="number" id="admin-stok" placeholder="Stok" class="p-4 bg-slate-50 border rounded-2xl font-bold">
+                        <input type="date" id="admin-expired" class="p-4 bg-slate-50 border rounded-2xl font-bold">
+                    </div>
+                    <button onclick="updateDataObat()" id="btn-admin-submit" class="w-full mt-10 bg-blue-600 text-white py-5 rounded-2xl font-black shadow-lg">SIMPAN DATA</button>
+                    <button onclick="resetAdminForm()" id="btn-admin-cancel" class="hidden w-full mt-2 bg-slate-100 py-3 rounded-2xl font-black text-slate-500">BATAL</button>
+                </div>
+                
+                <div class="bg-white rounded-[2.5rem] border overflow-hidden shadow-sm">
+                    <div class="p-8 border-b flex flex-col md:flex-row justify-between items-center bg-slate-50/50 gap-4">
+                        <div class="relative w-full md:w-80 order-2 md:order-1">
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="search-stok" onkeyup="filterTabelStok()" placeholder="Cari obat di sini..." class="w-full p-4 pl-12 rounded-2xl border-2 outline-none font-bold text-xs focus:border-blue-500 transition-all">
+                        </div>
+                        <h3 class="font-black text-slate-700 uppercase text-xs order-1 md:order-2">Database Stok & Expired</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-white text-[10px] font-black text-slate-400 uppercase border-b">
+                                <tr>
+                                    <th class="p-6">Nama Obat</th>
+                                    <th class="p-6">Harga (E/B)</th>
+                                    <th class="p-6 text-center">Stok</th>
+                                    <th class="p-6">Expired</th>
+                                    <th class="p-6 text-right">Aksi</th>
+                                </tr>
                             </thead>
-                            <tbody id="tabel-rekap-harian" class="divide-y divide-slate-100"></tbody>
+                            <tbody id="tabel-stok" class="divide-y font-semibold text-sm"></tbody>
                         </table>
                     </div>
-                </div>
-
-                <div class="space-y-6">
-                    <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
-                        <div class="p-5 border-b border-slate-100 bg-emerald-50/50"><h3 class="font-bold text-emerald-800 text-sm italic uppercase">Rekap Bulanan</h3></div>
-                        <div class="max-h-32 overflow-y-auto text-xs"><table class="w-full text-left"><tbody id="tabel-rekap-bulanan" class="divide-y divide-slate-100"></tbody></table></div>
-                    </div>
-                    <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
-                        <div class="p-5 border-b border-slate-100 bg-orange-50/50"><h3 class="font-bold text-orange-800 text-sm italic uppercase">Rekap Tahunan</h3></div>
-                        <div class="max-h-32 overflow-y-auto text-xs"><table class="w-full text-left"><tbody id="tabel-rekap-tahunan" class="divide-y divide-slate-100"></tbody></table></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
-                <div class="p-5 border-b border-slate-100 flex justify-between items-center"><h3 class="font-bold text-slate-700 text-sm">Riwayat Transaksi</h3></div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm table-mobile">
-                        <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase border-b">
-                            <tr>
-                                <th class="p-5">Waktu & Invoice</th>
-                                <th class="p-5">Rincian Obat</th>
-                                <th class="p-5 text-right">Total Tagihan</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabel-history" class="divide-y divide-slate-100"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <section id="tab-admin" class="tab-content hidden space-y-6">
-            <div id="admin-auth" class="max-w-md mx-auto bg-white p-8 rounded-3xl shadow-xl text-center border mt-10">
-                <i class="fas fa-user-lock text-4xl text-red-500 mb-4"></i>
-                <h2 class="text-xl font-bold mb-6">Akses Terbatas</h2>
-                <input type="password" id="admin-pass" placeholder="Password Admin" class="w-full p-4 bg-slate-50 border rounded-2xl mb-4 text-center outline-none">
-                <button onclick="loginAdmin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold">Buka Database</button>
-            </div>
-
-            <div id="admin-content" class="hidden space-y-6">
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 id="admin-form-title" class="font-bold text-slate-700">Manajemen Inventaris</h2>
-                        <button onclick="logoutAdmin()" class="text-xs text-red-500 font-bold uppercase">Logout</button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                        <input type="hidden" id="admin-edit-id">
-                        <input type="text" id="admin-nama" placeholder="Nama Obat" class="p-4 bg-slate-50 border rounded-2xl outline-none text-sm">
-                        <input type="number" id="admin-harga-biji" placeholder="Ecer" class="p-4 bg-slate-50 border rounded-2xl outline-none text-sm">
-                        <input type="number" id="admin-harga-box" placeholder="Box" class="p-4 bg-slate-50 border rounded-2xl outline-none text-sm">
-                        <input type="number" id="admin-stok" placeholder="Stok" class="p-4 bg-slate-50 border rounded-2xl outline-none text-sm">
-                        <div class="flex flex-col">
-                            <label class="text-[9px] font-bold text-slate-400 ml-1">TGL EXPIRED</label>
-                            <input type="date" id="admin-expired" class="p-3 bg-slate-50 border rounded-2xl outline-none text-sm">
-                        </div>
-                    </div>
-                    <div class="flex gap-2 mt-4">
-                        <button onclick="updateDataObat()" id="btn-admin-submit" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-bold">Simpan ke Sistem</button>
-                        <button onclick="resetAdminForm()" id="btn-admin-cancel" class="hidden px-6 bg-slate-200 text-slate-600 py-4 rounded-2xl font-bold">Batal</button>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
-                    <div class="p-4 bg-slate-50 border-b flex justify-between items-center">
-                        <input type="text" id="search-stok" onkeyup="filterTabelStok()" placeholder="Cari di tabel stok..." class="p-2 px-4 rounded-xl border text-xs outline-none w-full max-w-xs">
-                    </div>
-                    <table class="w-full text-left table-mobile">
-                        <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase">
-                            <tr><th class="p-4">Produk</th><th class="p-4">Harga</th><th class="p-4 text-center">Stok</th><th class="p-4">Expired</th><th class="p-4 text-right">Aksi</th></tr>
-                        </thead>
-                        <tbody id="tabel-stok" class="divide-y divide-slate-100 text-sm"></tbody>
-                    </table>
                 </div>
             </div>
         </section>
     </main>
 
-    <div id="receipt-print" class="hidden"></div>
+    <div id="modal-stock" class="fixed inset-0 z-[100] modal-overlay hidden flex items-center justify-center p-4">
+        <div class="modal-content bg-white w-full max-w-sm rounded-[3rem] p-10 shadow-2xl text-center">
+            <h3 class="text-xl font-black mb-2 text-slate-800">Tambah Stok</h3>
+            <p id="modal-stock-name" class="text-blue-600 font-bold text-sm mb-6 uppercase"></p>
+            <div class="bg-slate-50 p-6 rounded-3xl border-2 mb-8">
+                <input type="number" id="modal-stock-input" class="w-full bg-transparent text-5xl font-black outline-none text-center" placeholder="0">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="closeStockModal()" class="py-4 bg-slate-100 text-slate-500 rounded-2xl font-black uppercase text-xs">Batal</button>
+                <button onclick="confirmStockUpdate()" class="py-4 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs shadow-lg">Update</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="receipt-print"></div>
+
+    <div id="toast-container" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[9999] space-y-2 text-center w-full max-w-xs"></div>
 
     <script>
-        
-    function showToast(msg,type='info'){
-        const c=document.getElementById('toast-container');
-        if(!c) return;
-        const col={success:'bg-emerald-500',error:'bg-red-500',warning:'bg-orange-500',info:'bg-blue-500'}[type];
-        const d=document.createElement('div');
-        d.className=`toast ${col} text-white px-5 py-4 rounded-2xl shadow-lg flex gap-3 items-center text-sm font-bold`;
-        d.innerHTML=`<i class="fas ${type==='success'?'fa-check-circle':type==='error'?'fa-times-circle':type==='warning'?'fa-exclamation-circle':'fa-info-circle'}"></i><span>${msg}</span>`;
-        c.appendChild(d);
-        setTimeout(()=>d.remove(),3500);
-    }
-
-
         const MASTER_PASS = "apsejahtera123";
         const firebaseConfig = {
             apiKey: "AIzaSyCfi8bqVns9WvdrbTMVcJkYcKn-w1lX-Go",
             authDomain: "ap0tik-reny.firebaseapp.com",
             projectId: "ap0tik-reny",
             databaseURL: "https://ap0tik-reny-default-rtdb.asia-southeast1.firebasedatabase.app/", 
-            storageBucket: "ap0tik-reny.firebasestorage.app",
-            messagingSenderId: "463406659344",
-            appId: "1:463406659344:web:27bd0a3b1bb884432b5795"
+            storageBucket: "ap0tik-reny.firebasestorage.app"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let dataObatGlobal = {};
-        let dataHistoryGlobal = {};
-        let keranjang = [];
-        let totalTagihan = 0;
+        let dataObatGlobal = {}, dataHistoryGlobal = {}, keranjang = [];
+        let currentModalId = null;
 
-        // FUNGSI BARU: Mendapatkan Tanggal Lokal Format YYYY-MM-DD
-        function getLocalDateString() {
-            const now = new Date();
-            const offset = now.getTimezoneOffset() * 60000; 
-            const localISOTime = (new Date(now - offset)).toISOString().split('T')[0];
-            return localISOTime;
+        function getWITA() {
+            const d = new Date();
+            const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+            return new Date(utc + (3600000 * 8));
         }
+
+        function formatSafeDate(dateStr) {
+            if(!dateStr) return "-";
+            if(dateStr.includes("-") && dateStr.split("-")[0].length === 4) {
+                const [y, m, d] = dateStr.split("-");
+                return `${d}-${m}-${y}`;
+            }
+            return dateStr;
+        }
+
+        function getFormattedDate(dateObj) {
+            const d = dateObj || getWITA();
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            return `${day}-${month}-${d.getFullYear()}`;
+        }
+
+        function getISOForInput(dateObj) {
+            const d = dateObj || getWITA();
+            return d.toISOString().split('T')[0];
+        }
+
+        db.ref('obat').on('value', (s) => { dataObatGlobal = s.val() || {}; renderAdminTable(); });
+        db.ref('history').on('value', (s) => { dataHistoryGlobal = s.val() || {}; initLaporanDefault(); });
 
         function showTab(id) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('tab-active'));
             document.getElementById('tab-' + id).classList.remove('hidden');
             document.getElementById('btn-' + id).classList.add('tab-active');
+            if(id === 'kasir') setTimeout(() => document.getElementById('input-search').focus(), 100);
         }
-
-        db.ref('obat').on('value', (s) => { dataObatGlobal = s.val() || {}; renderAdminTable(); });
-        db.ref('history').on('value', (s) => { 
-            dataHistoryGlobal = s.val() || {};
-            applyDateFilter();
-        });
 
         // KASIR LOGIC
-        const inpSearch = document.getElementById('input-search');
-        const listSearch = document.getElementById('autocomplete-list');
+        const inpS = document.getElementById('input-search');
+        const listS = document.getElementById('autocomplete-list');
+        const areaSatuan = document.getElementById('area-satuan');
+        const inpQty = document.getElementById('input-qty');
+        let currentFocus = -1;
 
-        function renderSearch() {
-            const v = inpSearch.value.toLowerCase();
-            listSearch.innerHTML = '';
-            if(v.length < 1 && document.activeElement !== inpSearch) return;
+        inpS.addEventListener('keydown', function(e) {
+            let x = listS.getElementsByClassName("autocomplete-item");
+            if (e.keyCode == 40) { currentFocus++; addActive(x); }
+            else if (e.keyCode == 38) { currentFocus--; addActive(x); }
+            else if (e.keyCode == 13) { e.preventDefault(); if (currentFocus > -1 && x[currentFocus]) x[currentFocus].click(); }
+        });
 
+        function addActive(x) {
+            if (!x) return; removeActive(x);
+            if (currentFocus >= x.length) currentFocus = 0;
+            if (currentFocus < 0) currentFocus = (x.length - 1);
+            x[currentFocus].classList.add("selected");
+            x[currentFocus].scrollIntoView({ block: 'nearest' });
+        }
+        function removeActive(x) { for (let i = 0; i < x.length; i++) x[i].classList.remove("selected"); }
+
+        areaSatuan.addEventListener('keydown', function(e) {
+            if (e.keyCode == 37) document.getElementById('radio-biji').checked = true;
+            else if (e.keyCode == 39) document.getElementById('radio-box').checked = true;
+            else if (e.keyCode == 13) { e.preventDefault(); inpQty.focus(); inpQty.select(); }
+        });
+
+        inpQty.addEventListener('keydown', function(e) { if (e.keyCode == 13) { e.preventDefault(); tambahKeKeranjang(); } });
+
+        inpS.addEventListener('input', function() {
+            const val = this.value.toLowerCase();
+            listS.innerHTML = ''; currentFocus = -1;
+            if (!val) { listS.classList.add('hidden'); return; }
             Object.keys(dataObatGlobal).forEach(k => {
                 const it = dataObatGlobal[k];
-                if(it.nama.toLowerCase().includes(v)) {
-                    const d = document.createElement('div');
-                    d.className = 'autocomplete-item';
-                    const expDate = it.expired ? new Date(it.expired) : null;
-                    const diffDays = expDate ? Math.ceil((expDate - new Date()) / (1000 * 60 * 60 * 24)) : null;
-                    let expBadge = `<span class="text-[9px] text-slate-400">Exp: ${it.expired || '-'}</span>`;
-                    if(diffDays !== null) {
-                        if(diffDays < 0) expBadge = `<span class="text-[9px] text-white bg-red-600 px-1 rounded">EXPIRED!</span>`;
-                        else if(diffDays < 90) expBadge = `<span class="text-[9px] text-white bg-orange-500 px-1 rounded font-bold">Hampir Exp</span>`;
-                    }
-                    d.innerHTML = `<div class="flex justify-between items-center"><div><div class="font-bold text-slate-700 text-sm">${it.nama}</div><div class="flex gap-2 items-center"><span class="text-[9px] ${it.stok < 10 ? 'text-red-500' : 'text-blue-500'} font-bold">Stok: ${it.stok}</span>${expBadge}</div></div><div class="text-[10px] text-right">Rp${it.harga_biji.toLocaleString()} / pcs</div></div>`;
-                    d.onclick = () => { inpSearch.value = it.nama; document.getElementById('selected-id').value = k; listSearch.classList.add('hidden'); };
-                    listSearch.appendChild(d);
+                if (it.nama.toLowerCase().includes(val)) {
+                    const div = document.createElement('div');
+                    div.className = 'autocomplete-item';
+                    div.innerHTML = `<div class="flex justify-between items-center"><div><div class="font-black text-xl">${it.nama}</div><div class="flex gap-2 mt-1"><span class="badge-stock">STOK: ${it.stok}</span><span class="badge-exp">EXP: ${it.expired || '-'}</span></div></div><div class="font-black text-blue-600">Rp${it.harga_biji.toLocaleString()}</div></div>`;
+                    div.onclick = () => { inpS.value = it.nama; inpS.dataset.id = k; listS.classList.add('hidden'); areaSatuan.focus(); };
+                    listS.appendChild(div);
                 }
             });
-            listSearch.classList.remove('hidden');
-        }
-
-        inpSearch.addEventListener('input', renderSearch);
-        inpSearch.addEventListener('focus', renderSearch);
-        document.addEventListener('click', (e) => { if(e.target !== inpSearch) setTimeout(()=>listSearch.classList.add('hidden'), 200); });
+            listS.classList.remove('hidden');
+        });
 
         function tambahKeKeranjang() {
-            const id = document.getElementById('selected-id').value;
-            const qty = parseInt(document.getElementById('input-qty').value);
-            const satuan = document.getElementById('input-satuan').value;
-            if(!id) return showToast("Pilih obat dulu!", "warning");
+            const id = inpS.dataset.id;
+            const qty = parseInt(inpQty.value);
+            const satuan = document.querySelector('input[name="satuan"]:checked').value;
+            if(!id || qty <= 0) return;
             const it = dataObatGlobal[id];
-            if(it.stok < qty) return showToast("Stok tidak cukup!", "error");
-            const harga = (satuan === 'biji') ? it.harga_biji : it.harga_box;
-            keranjang.push({ id: id, nama: it.nama, qty: qty, satuan: satuan, harga: harga, expired: it.expired || "", subtotal: harga * qty });
-            renderKeranjang();
-            inpSearch.value = ''; document.getElementById('selected-id').value = '';
+            const harga = satuan === 'biji' ? it.harga_biji : it.harga_box;
+            keranjang.push({ id, nama: it.nama, qty, satuan, harga, subtotal: harga * qty });
+            renderKeranjang(); inpS.value = ''; delete inpS.dataset.id; inpQty.value = 1; inpS.focus();
         }
 
         function renderKeranjang() {
-            const b = document.getElementById('list-keranjang');
-            b.innerHTML = ''; totalTagihan = 0;
-            if(keranjang.length === 0) b.innerHTML = '<p class="text-center text-slate-300 italic py-4">Belum ada item</p>';
+            const c = document.getElementById('list-keranjang');
+            c.innerHTML = ''; let t = 0;
             keranjang.forEach((it, i) => {
-                totalTagihan += it.subtotal;
-                b.innerHTML += `<div class="bg-slate-50 p-3 rounded-2xl flex justify-between items-center text-xs border border-slate-100"><div><div class="font-bold">${it.nama}</div><div class="text-[9px] text-slate-400">Exp: ${it.expired || '-'}</div><div class="text-blue-500 font-bold">${it.qty} ${it.satuan} @${it.harga.toLocaleString()}</div></div><div class="flex items-center gap-3 font-bold text-slate-700">Rp${it.subtotal.toLocaleString()} <button onclick="hapusItem(${i})" class="text-red-300"><i class="fas fa-times-circle"></i></button></div></div>`;
+                t += it.subtotal;
+                c.innerHTML += `<div class="bg-slate-50 p-4 rounded-2xl flex justify-between mb-2 shadow-sm border"><div class="text-xs font-black">${it.nama}<br><span class="text-blue-500">${it.qty} ${it.satuan}</span></div><div class="flex items-center gap-4 font-black text-xs">Rp${it.subtotal.toLocaleString()}<button onclick="keranjang.splice(${i},1);renderKeranjang()" class="text-red-300"><i class="fas fa-times-circle text-lg"></i></button></div></div>`;
             });
-            document.getElementById('total-harga').innerText = "Rp " + totalTagihan.toLocaleString();
-            hitungKembalian();
+            document.getElementById('total-harga').innerText = "Rp " + t.toLocaleString();
+            window.totalT = t; hitungKembalian();
         }
 
-        function hapusItem(index) { keranjang.splice(index, 1); renderKeranjang(); }
         function hitungKembalian() {
             const t = parseInt(document.getElementById('input-tunai').value) || 0;
-            const k = t - totalTagihan;
+            const k = t - (window.totalT || 0);
             document.getElementById('text-kembalian').innerText = "Rp " + (k < 0 ? 0 : k).toLocaleString();
         }
 
         async function prosesCheckout() {
             if(keranjang.length === 0) return;
             const tunai = parseInt(document.getElementById('input-tunai').value) || 0;
-            if(tunai < totalTagihan) return showToast("Uang tunai tidak cukup!", "error");
+            if(tunai < window.totalT) { showToast("Uang Kurang", "error"); return; }
             
-            const n = new Date();
-            const localDate = getLocalDateString(); // Gunakan fungsi tanggal lokal
+            const now = getWITA();
             const updates = {};
-            const inv = 'INV-' + n.getTime();
-            
-            const h = { 
-                invoice: inv, 
-                timestamp: n.getTime(), 
-                tanggal: localDate, 
-                bulan: localDate.substring(0,7), 
-                tahun: localDate.substring(0,4), 
-                items: keranjang, 
-                total: totalTagihan, 
-                tunai, 
-                kembali: tunai - totalTagihan 
-            };
-
             keranjang.forEach(it => { updates[`/obat/${it.id}/stok`] = (dataObatGlobal[it.id].stok || 0) - it.qty; });
-
-            try { 
-                await db.ref().update(updates); 
-                await db.ref('history').push(h); 
-                cetakStruk(h); 
-                showToast("Transaksi berhasil", "success"); 
-                keranjang = []; document.getElementById('input-tunai').value = ''; renderKeranjang(); 
-            } catch(e) { showToast("Gagal: " + e.message, "error"); }
-        }
-
-        function cetakStruk(data) {
-            const printArea = document.getElementById('receipt-print');
-            let itemHtml = '';
-            data.items.forEach(it => { itemHtml += `<div>${it.nama.substring(0,25)}<br>${it.qty} x ${it.harga.toLocaleString()} = ${it.subtotal.toLocaleString()}</div><br>`; });
-            printArea.innerHTML = `<div style="text-align:center"><b>APOTEK SEJAHTERA</b><br>---<br>ID: ${data.invoice}<br>Tgl: ${new Date(data.timestamp).toLocaleString('id-ID')}<br>---<br></div>${itemHtml}---<br><b>TOTAL: Rp ${data.total.toLocaleString()}</b><br>TUNAI: Rp ${data.tunai.toLocaleString()}<br>---<br><div style="text-align:center">Lekas Sembuh</div>`;
-            window.print();
+            await db.ref().update(updates);
+            
+            await db.ref('history').push({ 
+                tanggal: getFormattedDate(now),
+                isoDate: getISOForInput(now),
+                bulan: getISOForInput(now).substring(0,7),
+                tahun: now.getFullYear().toString(),
+                total: window.totalT, items: keranjang, timestamp: now.getTime(), tunai: tunai 
+            });
+            
+            keranjang = []; document.getElementById('input-tunai').value = ''; renderKeranjang();
+            showToast("Transaksi Berhasil Disimpan", "success"); inpS.focus();
         }
 
         // LAPORAN LOGIC
-        function applyDateFilter() {
-            const start = document.getElementById('filter-mulai').value;
-            const end = document.getElementById('filter-selesai').value;
-            let filtered = dataHistoryGlobal;
-            if(start && end) {
-                filtered = Object.fromEntries(
-                    Object.entries(dataHistoryGlobal).filter(([key, val]) => val.tanggal >= start && val.tanggal <= end)
-                );
-            }
-            renderHistory(filtered);
-            calculateStats(dataHistoryGlobal);
-            renderAllRekap(filtered);
+        function initLaporanDefault() {
+            const now = getWITA();
+            document.getElementById('filter-hari').value = getISOForInput(now);
+            document.getElementById('filter-bulan').value = getISOForInput(now).substring(0, 7);
+            document.getElementById('filter-tahun').value = now.getFullYear();
+            updateLaporanHarian(); updateLaporanBulanan(); updateLaporanTahunan();
+            renderTabelHistory(dataHistoryGlobal);
         }
 
-        function calculateStats(h) {
-            const hI = getLocalDateString(), bI = hI.substring(0,7), tI = hI.substring(0,4);
-            let th=0, tb=0, tt=0;
-            Object.values(h).forEach(d => {
-                if(d.tanggal === hI) th += d.total;
-                if(d.bulan === bI) tb += d.total;
-                if(d.tahun === tI) tt += d.total;
-            });
-            document.getElementById('stat-hari').innerText = "Rp " + th.toLocaleString();
-            document.getElementById('stat-bulan').innerText = "Rp " + tb.toLocaleString();
-            document.getElementById('stat-tahun').innerText = "Rp " + tt.toLocaleString();
-        }
-
-        function renderAllRekap(h) {
-            const trHarian = document.getElementById('tabel-rekap-harian');
-            const trBulanan = document.getElementById('tabel-rekap-bulanan');
-            const trTahunan = document.getElementById('tabel-rekap-tahunan');
-            trHarian.innerHTML = ''; trBulanan.innerHTML = ''; trTahunan.innerHTML = '';
-            const rH = {}, rB = {}, rT = {};
-            Object.values(h).forEach(d => {
-                const parts = d.tanggal.split('-');
-                const tglId = parts[2] + '-' + parts[1] + '-' + parts[0];
-                rH[tglId] = (rH[tglId] || 0) + d.total;
-                rB[d.bulan] = (rB[d.bulan] || 0) + d.total;
-                rT[d.tahun] = (rT[d.tahun] || 0) + d.total;
-            });
-            Object.keys(rH).reverse().forEach(tgl => {
-                trHarian.innerHTML += `<tr><td class="p-3 font-bold">${tgl}</td><td class="p-3 text-right font-black text-blue-600">Rp ${rH[tgl].toLocaleString()}</td></tr>`;
-            });
-            Object.keys(rB).sort().reverse().forEach(bln => {
-                trBulanan.innerHTML += `<tr class="hover:bg-emerald-50"><td class="p-3 font-bold">${bln}</td><td class="p-3 text-right font-black text-emerald-600">Rp ${rB[bln].toLocaleString()}</td></tr>`;
-            });
-            Object.keys(rT).sort().reverse().forEach(thn => {
-                trTahunan.innerHTML += `<tr class="hover:bg-orange-50"><td class="p-3 font-bold">${thn}</td><td class="p-3 text-right font-black text-orange-600">Rp ${rT[thn].toLocaleString()}</td></tr>`;
+        function renderTabelHistory(h) {
+            const tr = document.getElementById('tabel-history-raw'); tr.innerHTML = '';
+            const sortedKeys = Object.keys(h).sort((a,b)=>h[b].timestamp-h[a].timestamp);
+            
+            sortedKeys.forEach(k => {
+                const d = h[k];
+                const items = d.items.map(it => `<div class="flex justify-between border-b pb-1"><span>${it.nama}</span><span>x${it.qty}</span></div>`).join('');
+                tr.innerHTML += `<tr>
+                    <td class="p-6"><div>${formatSafeDate(d.tanggal)}</div><div class="text-[10px] text-slate-400">${new Date(d.timestamp).toLocaleTimeString('id-ID')}</div></td>
+                    <td class="p-6"><div class="max-w-xs text-[10px]">${items}</div></td>
+                    <td class="p-6 text-right font-black">
+                        <div>Rp ${d.total.toLocaleString()}</div>
+                        <button onclick="cetakUlang('${k}')" class="text-[9px] text-blue-500 font-bold uppercase mt-1 bg-blue-50 px-2 py-1 rounded">Cetak Struk</button>
+                    </td></tr>`;
             });
         }
 
-        function renderHistory(h) {
-            const tb = document.getElementById('tabel-history');
-            tb.innerHTML = '';
-            const sorted = Object.keys(h).map(key => ({...h[key], firebaseKey: key})).sort((a, b) => b.timestamp - a.timestamp);
-            sorted.forEach(d => {
-                const jam = new Date(d.timestamp).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
-                const parts = d.tanggal.split('-');
-                const tglIndo = parts[2] + '-' + parts[1] + '-' + parts[0];
-                const items = d.items.map(i => `<span class="bg-slate-100 px-2 py-0.5 rounded text-[11px] font-semibold">${i.nama} (${i.qty})</span>`).join(' ');
-                tb.innerHTML += `<tr><td class="p-5" data-label="Waktu & Invoice"><div class="text-xs font-bold text-slate-800">${tglIndo} <span class="text-slate-400 font-normal">| ${jam}</span></div><div class="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded inline-block font-mono mt-1">${d.invoice}</div></td><td class="p-5" data-label="Rincian Obat"><div class="item-list-wrap flex flex-wrap gap-1">${items}</div></td><td class="p-5 text-right" data-label="Total Tagihan"><div class="font-black text-slate-900 text-sm">Rp ${d.total.toLocaleString()}</div></td></tr>`;
-            });
+        function cetakUlang(key) {
+            const d = dataHistoryGlobal[key];
+            const pr = document.getElementById('receipt-print');
+            pr.innerHTML = `<div style="text-align:center"><strong>APOTEK SEJAHTERA</strong><br>${d.tanggal}<br>${new Date(d.timestamp).toLocaleTimeString()}</div><hr>` + 
+                           d.items.map(i=>`<div>${i.nama} x${i.qty}<br> @${i.harga.toLocaleString()} = ${i.subtotal.toLocaleString()}</div>`).join('') + 
+                           `<hr><strong>TOTAL: Rp ${d.total.toLocaleString()}</strong><br>Tunai: Rp ${d.tunai ? d.tunai.toLocaleString() : '-'}<hr><div style="text-align:center">Terima Kasih</div>`;
+            window.print(); // Ini hanya dipanggil jika Anda benar-benar mengklik tombol Cetak
         }
 
-        // ADMIN LOGIC
-        function loginAdmin() {
-            if(document.getElementById('admin-pass').value === MASTER_PASS) {
-                document.getElementById('admin-auth').classList.add('hidden');
-                document.getElementById('admin-content').classList.remove('hidden');
-            } else showToast("Password admin salah", "error");
-        }
+        // --- ADMIN & MODAL ---
+        function loginAdmin() { if(document.getElementById('admin-pass').value === MASTER_PASS) { document.getElementById('admin-auth').classList.add('hidden'); document.getElementById('admin-content').classList.remove('hidden'); } else showToast("PIN SALAH", "error"); }
         function logoutAdmin() { document.getElementById('admin-auth').classList.remove('hidden'); document.getElementById('admin-content').classList.add('hidden'); }
-
-        async function updateDataObat() {
-            const idEdit = document.getElementById('admin-edit-id').value;
-            const nama = document.getElementById('admin-nama').value;
-            const hb = parseInt(document.getElementById('admin-harga-biji').value);
-            const hbx = parseInt(document.getElementById('admin-harga-box').value) || 0;
-            const stok = parseInt(document.getElementById('admin-stok').value) || 0;
-            const exp = document.getElementById('admin-expired').value || "";
-            if(!nama || isNaN(hb)) return showToast("Nama & Harga wajib!", "warning");
-            const id = idEdit || nama.toLowerCase().replace(/\s+/g, '-');
-            await db.ref('obat/' + id).set({ nama, harga_biji: hb, harga_box: hbx, stok, expired: exp });
-            showToast("Data obat tersimpan", "success");
-            resetAdminForm();
-        }
-
-        function resetAdminForm() {
-            ['admin-nama', 'admin-harga-biji', 'admin-harga-box', 'admin-stok', 'admin-expired', 'admin-edit-id'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('admin-form-title').innerText = "Tambah Obat Baru";
-            document.getElementById('btn-admin-submit').innerText = "Simpan ke Sistem";
-            document.getElementById('btn-admin-cancel').classList.add('hidden');
-        }
-
-        function editObat(id) {
-            const it = dataObatGlobal[id];
-            document.getElementById('admin-edit-id').value = id;
-            document.getElementById('admin-nama').value = it.nama;
-            document.getElementById('admin-harga-biji').value = it.harga_biji;
-            document.getElementById('admin-harga-box').value = it.harga_box;
-            document.getElementById('admin-stok').value = it.stok;
-            document.getElementById('admin-expired').value = it.expired || "";
-            document.getElementById('admin-form-title').innerText = "Edit Obat: " + it.nama;
-            document.getElementById('btn-admin-submit').innerText = "Update Data";
-            document.getElementById('btn-admin-cancel').classList.remove('hidden');
-            window.scrollTo({top: 0, behavior: 'smooth'});
-        }
-
-        async function hapusObat(id) { if(window.confirm("Hapus data obat ini?")) { await db.ref("obat/" + id).remove(); showToast("Data obat dihapus","success"); } }
-
         function renderAdminTable() {
-            const tb = document.getElementById('tabel-stok');
-            tb.innerHTML = '';
-            Object.keys(dataObatGlobal).forEach(k => {
+            const tb = document.getElementById('tabel-stok'); tb.innerHTML = '';
+            Object.keys(dataObatGlobal).sort((a,b)=>dataObatGlobal[a].nama.localeCompare(dataObatGlobal[b].nama)).forEach(k => {
                 const it = dataObatGlobal[k];
-                tb.innerHTML += `<tr class="stok-row" data-name="${it.nama.toLowerCase()}"><td class="p-4 font-bold" data-label="Produk">${it.nama}</td><td class="p-4" data-label="Harga">Ecer: ${it.harga_biji.toLocaleString()}<br>Box: ${it.harga_box.toLocaleString()}</td><td class="p-4 text-center" data-label="Stok"><span class="${it.stok < 10 ? 'text-red-500 font-bold' : ''}">${it.stok}</span></td><td class="p-4" data-label="Expired">${it.expired || '-'}</td><td class="p-4 text-right" data-label="Aksi"><button onclick="editObat('${k}')" class="text-blue-500 mr-2"><i class="fas fa-edit"></i></button><button onclick="hapusObat('${k}')" class="text-red-400"><i class="fas fa-trash"></i></button></td></tr>`;
+                tb.innerHTML += `<tr class="stok-row" data-name="${it.nama.toLowerCase()}">
+                    <td class="p-6 font-black">${it.nama}</td><td class="p-6 text-xs">E: ${it.harga_biji.toLocaleString()}<br>B: ${it.harga_box.toLocaleString()}</td>
+                    <td class="p-6 text-center"><span class="text-xl font-black ${it.stok<10?'text-red-500':'text-blue-600'}">${it.stok}</span><br><button onclick="openStockModal('${k}')" class="mt-1 text-blue-600 bg-blue-50 px-3 py-1 rounded-xl text-[10px] font-black uppercase">Tambah</button></td>
+                    <td class="p-6"><span class="badge-exp">${it.expired || '-'}</span></td><td class="p-6 text-right"><button onclick="editObat('${k}')" class="text-blue-400 mr-4"><i class="fas fa-edit"></i></button><button onclick="hapusObat('${k}')" class="text-red-300"><i class="fas fa-trash"></i></button></td></tr>`;
             });
         }
-
-        function filterTabelStok() {
-            const q = document.getElementById('search-stok').value.toLowerCase();
-            document.querySelectorAll('.stok-row').forEach(row => { row.classList.toggle('hidden', !row.dataset.name.includes(q)); });
-        }
+        function openStockModal(id) { currentModalId = id; document.getElementById('modal-stock-name').innerText = dataObatGlobal[id].nama; document.getElementById('modal-stock-input').value = ""; document.getElementById('modal-stock').classList.remove('hidden'); setTimeout(() => document.getElementById('modal-stock-input').focus(), 100); }
+        function closeStockModal() { document.getElementById('modal-stock').classList.add('hidden'); }
+        async function confirmStockUpdate() { const add = parseInt(document.getElementById('modal-stock-input').value); if(!add || add <= 0) { closeStockModal(); return; } await db.ref('obat/' + currentModalId).update({ stok: (dataObatGlobal[currentModalId].stok || 0) + add }); showToast("Stok Ditambahkan", "success"); closeStockModal(); }
+        async function updateDataObat() { const idEdit = document.getElementById('admin-edit-id').value; const n = document.getElementById('admin-nama').value; const hb = parseInt(document.getElementById('admin-harga-biji').value); if(!n || isNaN(hb)) return; const id = idEdit || n.toLowerCase().replace(/\s+/g, '-'); await db.ref('obat/' + id).set({ nama:n, harga_biji:hb, harga_box:parseInt(document.getElementById('admin-harga-box').value)||0, stok:parseInt(document.getElementById('admin-stok').value)||0, expired:document.getElementById('admin-expired').value }); resetAdminForm(); showToast("Tersimpan", "success"); }
+        function editObat(id) { const it = dataObatGlobal[id]; document.getElementById('admin-edit-id').value = id; document.getElementById('admin-nama').value = it.nama; document.getElementById('admin-harga-biji').value = it.harga_biji; document.getElementById('admin-harga-box').value = it.harga_box; document.getElementById('admin-stok').value = it.stok; document.getElementById('admin-expired').value = it.expired || ""; document.getElementById('btn-admin-cancel').classList.remove('hidden'); window.scrollTo({top:0, behavior:'smooth'}); }
+        function resetAdminForm() { ['admin-nama','admin-harga-biji','admin-harga-box','admin-stok','admin-expired','admin-edit-id'].forEach(id=>document.getElementById(id).value=''); document.getElementById('btn-admin-cancel').classList.add('hidden'); }
+        function filterTabelStok() { const q = document.getElementById('search-stok').value.toLowerCase(); document.querySelectorAll('.stok-row').forEach(r => r.classList.toggle('hidden', !r.dataset.name.includes(q))); }
+        function showToast(m, t) { const c = document.getElementById('toast-container'); const d = document.createElement('div'); d.className = `${t==='success'?'bg-emerald-600':'bg-red-600'} text-white px-6 py-3 rounded-2xl shadow-xl font-black text-xs uppercase`; d.innerText = m; c.appendChild(d); setTimeout(()=>d.remove(), 2500); }
+        async function hapusObat(id) { if(confirm("Hapus obat?")) await db.ref('obat/'+id).remove(); }
+        function updateLaporanHarian() { let total = 0; const val = document.getElementById('filter-hari').value; Object.values(dataHistoryGlobal).forEach(d => { if(d.isoDate === val) total += d.total; }); document.getElementById('stat-hari-val').innerText = "Rp " + total.toLocaleString(); }
+        function updateLaporanBulanan() { let total = 0; const val = document.getElementById('filter-bulan').value; Object.values(dataHistoryGlobal).forEach(d => { if(d.bulan === val) total += d.total; }); document.getElementById('stat-bulan-val').innerText = "Rp " + total.toLocaleString(); }
+        function updateLaporanTahunan() { let total = 0; const val = document.getElementById('filter-tahun').value.toString(); Object.values(dataHistoryGlobal).forEach(d => { if(d.tahun === val) total += d.total; }); document.getElementById('stat-tahun-val').innerText = "Rp " + total.toLocaleString(); }
     </script>
-
-    <!-- TOAST CONTAINER -->
-    <div id="toast-container"
-         class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] space-y-3 w-[95%] max-w-md"></div>
-
 </body>
 </html>
