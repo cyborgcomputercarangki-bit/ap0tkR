@@ -344,11 +344,32 @@ window.onscroll = function() {
         }
 
         // --- FETCH DATA ---
-        db.ref('obat').on('value', s => { 
-            localData = s.val() || {}; 
-            renderInitialGrid(); 
-            renderAdminTable(); 
-        });
+     db.ref('obat').once('value')
+  .then(snapshot => {
+    const data = snapshot.val() || {};
+    localData = data;
+    
+    console.log('DATA OBAT BERHASIL DIMUAT:', Object.keys(localData).length, 'obat');
+    console.log('Contoh obat pertama:', localData[Object.keys(localData)[0]]); // cek isi
+    
+    // Render SEMUA yang butuh data obat
+    renderInitialGrid();     // grid di kasir
+    renderAdminTable();      // tabel di admin
+    
+    // Kalau kamu sudah di tab admin, force render ulang
+    if (!document.getElementById('section-admin').classList.contains('hidden')) {
+      renderAdminTable();
+    }
+    
+    // Update count manual (aman)
+    const countEl = document.getElementById('admin-total-count');
+    if (countEl) {
+      countEl.innerText = Object.keys(localData).length;
+    }
+  })
+  .catch(error => {
+    console.error('GAGAL AMBIL DATA OBAT:', error.code, error.message);
+  });
         db.ref('history').on('value', s => { 
             dataHistoryGlobal = s.val() || {}; 
             initLaporanDefault(); 
@@ -417,45 +438,67 @@ window.onscroll = function() {
                 const card = document.createElement('div');
                 card.className = "prod-item product-card luxury-card cursor-pointer";
                 card.onclick = () => addToCart(id);
-                card.innerHTML = `<div class="image-box"><div class="logo-placeholder"><i class="fas fa-prescription-bottle-alt text-3xl opacity-30"></i></div><span class="badge-exp">${item.expired || 'No Exp'}</span><span class="badge-farmasi ${badge.css}">${badge.txt}</span><span class="badge-stok-circle ${stokColor}">${item.stok}</span></div><div class="p-4"><h3 class="font-bold text-[11px] uppercase truncate text-slate-800 mb-1">${item.nama}</h3><p class="text-blue-600 font-extrabold text-[13px]">Rp ${item.harga_biji.toLocaleString()}</p></div>`;
+                card.innerHTML = `<div class="image-box"><div class="logo-placeholder"><i class="fas fa-prescription-bottle-alt text-3xl opacity-30"></i></div><span class="badge-exp">${item.expired || 'No Exp'}</span><span class="badge-farmasi ${badge.css}">${badge.txt}</span><span class="badge-stok-circle ${stokColor}">${item.stok}</span></div><div class="p-4"><h3 class="font-bold text-[11px] uppercase truncate text-slate-800 mb-1">${item.nama}</h3><p class="text-blue-600 font-extrabold text-[13px]">Rp ${(item.harga_biji || 0).toLocaleString('id-ID')}</p></div>`;
                 card.setAttribute('data-category', item.kategori || 'LAINNYA');
-                card.setAttribute('data-name', item.nama.toLowerCase());
+               card.setAttribute('data-name', (item.nama || '').toLowerCase());
                 container.appendChild(card);
             });
             filterCari();
         }
 
         // --- ADMIN LOGIC ---
-        function renderAdminTable() {
-            const tbody = document.getElementById('admin-table-body');
-            tbody.innerHTML = '';
-            const keys = Object.keys(localData);
-            document.getElementById('admin-total-count').innerText = keys.length;
-
-            keys.forEach(id => {
-                const item = localData[id];
-                const row = document.createElement('tr');
-                row.className = "admin-row hover:bg-slate-50 transition-colors";
-                row.setAttribute('data-search', item.nama.toLowerCase());
-                row.innerHTML = `
-                    <td class="p-4">
-                        <div class="font-black uppercase text-[11px]">${item.nama}</div>
-                        <div class="text-[9px] text-slate-400">${item.kategori} | Exp: ${item.expired || '-'}</div>
-                    </td>
-                    <td class="p-4 text-center">
-                        <span class="px-2 py-1 rounded-md ${item.stok < 5 ? 'bg-red-100 text-red-600' : 'bg-slate-100'}">${item.stok}</span>
-                    </td>
-                    <td class="p-4 text-blue-600">Rp ${item.harga_biji.toLocaleString()}</td>
-                    <td class="p-4">
-                        <div class="flex justify-center gap-2">
-                            <button onclick="editProduct('${id}')" class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center hover:bg-amber-600 hover:text-white transition-all"><i class="fas fa-edit text-[10px]"></i></button>
-                            <button onclick="deleteProduct('${id}')" class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all"><i class="fas fa-trash text-[10px]"></i></button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
+       function renderAdminTable() {
+    console.log('renderAdminTable dipanggil - jumlah:', Object.keys(localData).length);
+    
+    const tbody = document.getElementById('admin-table-body');
+    if (!tbody) {
+        console.error('Elemen tbody tidak ditemukan');
+        return;
+    }
+    
+    tbody.innerHTML = '';  // kosongkan
+    
+    const keys = Object.keys(localData);
+    let renderedCount = 0;
+    
+    keys.forEach(id => {
+        const item = localData[id];
+        if (!item || typeof item !== 'object') return;
+        
+        // Skip kalau data rusak parah, tapi tetap render yang lain
+        const nama   = item.nama   || 'Nama Tidak Ada';
+        const kat    = item.kategori || '?';
+        const stok   = Number(item.stok)   || 0;
+        const harga  = Number(item.harga_biji) || 0;
+        const exp    = item.expired || '-';
+        
+        const row = document.createElement('tr');
+        row.className = 'admin-row hover:bg-slate-50 transition-colors';
+        row.setAttribute('data-search', nama.toLowerCase());
+        
+        row.innerHTML = `
+            <td class="p-4">
+                <div class="font-black uppercase text-[11px]">${nama}</div>
+                <div class="text-[9px] text-slate-400">${kat} | Exp: ${exp}</div>
+            </td>
+            <td class="p-4 text-center">
+                <span class="px-2 py-1 rounded-md ${stok < 5 ? 'bg-red-100 text-red-600' : 'bg-slate-100'}">${stok}</span>
+            </td>
+            <td class="p-4 text-blue-600">Rp ${harga.toLocaleString('id-ID')}</td>
+            <td class="p-4">
+                <div class="flex justify-center gap-2">
+                    <button onclick="editProduct('${id}')" class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center hover:bg-amber-600 hover:text-white transition-all"><i class="fas fa-edit text-[10px]"></i></button>
+                    <button onclick="deleteProduct('${id}')" class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all"><i class="fas fa-trash text-[10px]"></i></button>
+                </div>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+        renderedCount++;
+    });
+    
+    document.getElementById('admin-total-count').innerText = renderedCount;
+}
 
         function filterAdminTable(val) {
             const query = val.toLowerCase();
