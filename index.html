@@ -342,34 +342,37 @@ window.onscroll = function() {
         function getRawValue(str) {
             return parseInt(str.replace(/\./g, "")) || 0;
         }
+// --- FETCH DATA OBAT dengan realtime listener ---
+let obatListener = null;
 
-        // --- FETCH DATA ---
-     db.ref('obat').once('value')
-  .then(snapshot => {
-    const data = snapshot.val() || {};
-    localData = data;
-    
-    console.log('DATA OBAT BERHASIL DIMUAT:', Object.keys(localData).length, 'obat');
-    console.log('Contoh obat pertama:', localData[Object.keys(localData)[0]]); // cek isi
-    
-    // Render SEMUA yang butuh data obat
-    renderInitialGrid();     // grid di kasir
-    renderAdminTable();      // tabel di admin
-    
-    // Kalau kamu sudah di tab admin, force render ulang
-    if (!document.getElementById('section-admin').classList.contains('hidden')) {
-      renderAdminTable();
+function loadObatRealtime() {
+    if (obatListener) {
+        obatListener.off(); // hapus listener lama kalau ada
     }
-    
-    // Update count manual (aman)
-    const countEl = document.getElementById('admin-total-count');
-    if (countEl) {
-      countEl.innerText = Object.keys(localData).length;
-    }
-  })
-  .catch(error => {
-    console.error('GAGAL AMBIL DATA OBAT:', error.code, error.message);
-  });
+
+    obatListener = db.ref('obat').on('value', snapshot => {
+        const data = snapshot.val() || {};
+        localData = data;
+
+        console.log('✅ DATA OBAT DIUPDATE:', Object.keys(localData).length, 'obat');
+
+        // Render ulang semua yang butuh data obat
+        renderInitialGrid();      // grid di kasir
+        renderAdminTable();       // tabel di admin
+
+        // Update jumlah total di admin
+        const countEl = document.getElementById('admin-total-count');
+        if (countEl) {
+            countEl.innerText = Object.keys(localData).length;
+        }
+    }, error => {
+        console.error('❌ GAGAL LOAD DATA OBAT:', error.code, error.message);
+        toast('Gagal memuat data obat dari server', 'error');
+    });
+}
+
+// Panggil fungsi ini sekali saat awal load
+loadObatRealtime();
         db.ref('history').on('value', s => { 
             dataHistoryGlobal = s.val() || {}; 
             initLaporanDefault(); 
@@ -673,13 +676,24 @@ window.onscroll = function() {
                 document.getElementById('filter-hari').value = v;
                 document.getElementById('filter-bulan').value = v.substring(0,7);
             }
-            updateLaporanHarian(); updateLaporanBulanan(); renderTabelHistory();
+            updateLaporanHarian(); updateLaporanBulanan();
         }
-        function updateLaporanHarian() { 
-            let t=0; const v=document.getElementById('filter-hari').value; 
-            Object.values(dataHistoryGlobal).forEach(d => { if(d.isoDate === v) t += d.total; }); 
-            document.getElementById('stat-hari-val').innerText = "Rp " + t.toLocaleString(); 
+       function updateLaporanHarian() { 
+    const selectedDate = document.getElementById('filter-hari').value;
+    let totalHari = 0;
+    
+    // Hitung total pendapatan
+    Object.values(dataHistoryGlobal).forEach(d => { 
+        if(d.isoDate === selectedDate) {
+            totalHari += d.total || 0;
         }
+    }); 
+    
+    document.getElementById('stat-hari-val').innerText = "Rp " + totalHari.toLocaleString('id-ID'); 
+
+    // === BAGIAN BARU: Update tabel rincian sesuai tanggal ===
+    renderTabelHistoryByDate(selectedDate);
+}
         function updateLaporanBulanan() { 
             let t=0; const v=document.getElementById('filter-bulan').value; 
             Object.values(dataHistoryGlobal).forEach(d => { if(d.bulan === v) t += d.total; }); 
@@ -691,6 +705,42 @@ window.onscroll = function() {
                 tr.innerHTML += `<tr class="hover:bg-slate-50"><td class="p-6 text-slate-400 font-medium">${d.tanggal}</td><td class="p-6 truncate max-w-xs">${d.items.map(i => i.nama).join(', ')}</td><td class="p-6 text-right font-black text-blue-600">Rp ${d.total.toLocaleString()}</td></tr>`;
             });
         }
+
+        // Render tabel history sesuai tanggal yang dipilih
+function renderTabelHistoryByDate(selectedDate) {
+    const tbody = document.getElementById('tabel-history-raw');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    // Ambil semua transaksi, filter sesuai tanggal, lalu urutkan terbaru ke lama
+    const filteredTransactions = Object.values(dataHistoryGlobal)
+        .filter(d => d.isoDate === selectedDate)
+        .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));  // terbaru di atas
+
+    if (filteredTransactions.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" class="p-8 text-center text-slate-400 font-medium">
+                    Tidak ada transaksi pada tanggal ini
+                </td>
+            </tr>`;
+        return;
+    }
+
+    filteredTransactions.forEach(d => {
+        const itemsList = d.items ? d.items.map(i => i.nama).join(', ') : '-';
+        
+        tbody.innerHTML += `
+            <tr class="hover:bg-slate-50 transition-colors">
+                <td class="p-6 text-slate-400 font-medium">${d.tanggal || '-'}</td>
+                <td class="p-6 truncate max-w-xs text-slate-700">${itemsList}</td>
+                <td class="p-6 text-right font-black text-blue-600">
+                    Rp ${d.total ? d.total.toLocaleString('id-ID') : '0'}
+                </td>
+            </tr>`;
+    });
+}
         async function simpanPengeluaran() {
             const ket = document.getElementById('exp-ket').value;
             const nomStr = document.getElementById('exp-nom').value;
