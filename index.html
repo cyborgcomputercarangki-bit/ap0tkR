@@ -10,101 +10,355 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; overflow-x: hidden; }
-        
-        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+       /* =========================
+   FONT & BODY
+========================= */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
 
-        .tab-menu { display: flex; gap: 8px; overflow-x: auto; padding: 4px; scrollbar-width: none; }
-        .tab-menu::-webkit-scrollbar { display: none; }
-        .tab-item { 
-            padding: 10px 18px; border-radius: 12px; font-size: 11px; font-weight: 800; 
-            text-transform: uppercase; white-space: nowrap; transition: 0.3s;
-            background: white; border: 1px solid #e2e8f0; color: #64748b; cursor: pointer;
-        }
-        .tab-item.active { background: #0f172a !important; color: #fbbf24 !important; border-color: #0f172a !important; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #f8fafc;
+    color: #1e293b;
+    overflow-x: hidden;
+}
 
-        .luxury-card { background: white; border-radius: 1.5rem; border: 1px solid #f1f5f9; overflow: hidden; }
-        .product-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; height: 100%; position: relative; }
-        .product-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); }
-        
-        .image-box { width: 100%; height: 130px; background: #f1f5f9; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        .logo-placeholder { 
-            width: 100%; height: 100%; 
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8;
-        }
+/* =========================
+   SCROLLBAR
+========================= */
+.custom-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
 
-        .badge-farmasi { position: absolute; bottom: 8px; left: 8px; padding: 4px 10px; border-radius: 8px; font-size: 8px; font-weight: 900; color: white; z-index: 10; }
-        .gol-keras { background: rgba(220, 38, 38, 0.85); } 
-        .gol-bebas-terbatas { background: rgba(37, 99, 235, 0.85); } 
-        .gol-bebas { background: rgba(22, 163, 74, 0.85); } 
-        .gol-vitamin { background: rgba(245, 158, 11, 0.85); }
+.custom-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
 
-        .badge-stok-circle { position: absolute; top: 8px; left: 8px; min-width: 22px; height: 22px; border-radius: 11px; font-size: 9px; font-weight: 800; color: white; display: flex; align-items: center; justify-content: center; z-index: 10; }
-        .badge-exp { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.9); color: #1e293b; padding: 3px 8px; border-radius: 8px; font-size: 8px; font-weight: 800; border: 1px solid #e2e8f0; z-index: 10; }
+.custom-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
 
-        .cart-item { border-bottom: 1px solid #f8fafc; padding: 12px 0; }
-        .qty-container { display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 10px; padding: 2px; min-width: 85px; }
-        .qty-btn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: 0.2s; font-weight: 900; }
-        
-        .nav-active { background: #334155 !important; color: #fbbf24 !important; border-radius: 16px; box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06); }
-        
-        .notif-badge {
-            position: absolute; top: 5px; right: 15px; background: #ef4444; color: white;
-            font-size: 9px; font-weight: 900; min-width: 18px; height: 18px;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            border: 2px solid #0f172a; visibility: hidden;
-        }
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
 
-        /* Custom Swal Styling */
-        .admin-swal-popup { border-radius: 2rem !important; padding: 2rem !important; }
-        .admin-swal-input { 
-            border-radius: 1rem !important; border: 2px solid #f1f5f9 !important; 
-            font-weight: 700 !important; text-align: center !important; font-size: 1.2rem !important;
-            letter-spacing: 0.3em !important;
-        }
+/* =========================
+   TAB MENU
+========================= */
+.tab-menu {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px;
+    scrollbar-width: none;
+}
+
+.tab-menu::-webkit-scrollbar {
+    display: none;
+}
+
+.tab-item {
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: background .2s, color .2s;
+    background: white;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.tab-item.active {
+    background: #0f172a !important;
+    color: #fbbf24 !important;
+    border-color: #0f172a !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,.08);
+}
+
+/* =========================
+   CARD
+========================= */
+.luxury-card {
+    background: white;
+    border-radius: 1.5rem;
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+
+/* =========================
+   PRODUCT CARD
+========================= */
+.product-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,.06);
+}
+
+/* =========================
+   IMAGE BOX
+========================= */
+.image-box {
+    width: 100%;
+    height: 110px;
+    background: #f1f5f9;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-top-left-radius: 1.5rem;
+    border-top-right-radius: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .image-box {
+        height: 130px;
+    }
+}
+
+.image-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform .25s ease;
+}
+
+.product-card:hover img {
+    transform: scale(1.03);
+}
+
+/* =========================
+   PLACEHOLDER
+========================= */
+.logo-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+}
+
+/* =========================
+   BADGES
+========================= */
+.badge-farmasi {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 8px;
+    font-weight: 900;
+    color: white;
+    z-index: 10;
+}
+
+.gol-keras { background: rgba(220, 38, 38, .85); }
+.gol-bebas-terbatas { background: rgba(37, 99, 235, .85); }
+.gol-bebas { background: rgba(22, 163, 74, .85); }
+.gol-vitamin { background: rgba(245, 158, 11, .85); }
+
+.badge-stok-circle {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    min-width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 9px;
+    font-weight: 800;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.badge-exp {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255,255,255,.9);
+    color: #1e293b;
+    padding: 3px 8px;
+    border-radius: 8px;
+    font-size: 8px;
+    font-weight: 800;
+    border: 1px solid #e2e8f0;
+    z-index: 10;
+}
+
+/* =========================
+   CART
+========================= */
+.cart-item {
+    border-bottom: 1px solid #f8fafc;
+    padding: 10px 0;
+}
+
+.qty-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    border-radius: 10px;
+    padding: 2px;
+    min-width: 75px;
+}
+
+.qty-btn {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: background .2s;
+    font-weight: 900;
+}
+
+/* =========================
+   NAV ACTIVE
+========================= */
+.nav-active {
+    background: #334155 !important;
+    color: #fbbf24 !important;
+    border-radius: 16px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.06);
+}
+
+/* =========================
+   NOTIFICATION BADGE
+========================= */
+.notif-badge {
+    position: absolute;
+    top: 5px;
+    right: 15px;
+    background: #ef4444;
+    color: white;
+    font-size: 9px;
+    font-weight: 900;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #0f172a;
+    visibility: hidden;
+}
+
+/* =========================
+   SWEET ALERT
+========================= */
+.admin-swal-popup {
+    border-radius: 2rem !important;
+    padding: 2rem !important;
+}
+
+.admin-swal-input {
+    border-radius: 1rem !important;
+    border: 2px solid #f1f5f9 !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    font-size: 1.2rem !important;
+    letter-spacing: .3em !important;
+}
     </style>
 </head>
 <body class="bg-slate-50">
 
-    <header class="sticky top-0 z-50 bg-slate-900 border-b-4 border-amber-400 p-4 shadow-xl">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-            <div class="flex items-center gap-4">
-                <div class="bg-amber-400 p-3 rounded-2xl shadow-lg"><i class="fas fa-prescription-bottle-alt text-slate-900 text-2xl"></i></div>
-                <div>
-                    <h1 class="text-white font-extrabold text-xl uppercase leading-none tracking-tighter">Apotek Sejahtera</h1>
-                    <p class="text-amber-400 text-[10px] font-bold tracking-[0.2em] mt-1">GOR KARIANGO-KOSTRAD</p>
+    <header class="sticky top-0 z-50 p-4 shadow-xl relative overflow-hidden windows-light-oobe border-b-4 border-amber-400">
+        <style>
+            .windows-light-oobe {
+                background: linear-gradient(120deg, #040914, #0b1528, #1e1b4b, #2e1065, #024e75, #040914);
+                background-size: 400% 400%;
+                animation: oobeLightWave 12s ease infinite;
+            }
+
+            @keyframes oobeLightWave {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
+
+            .fade-text {
+                transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+                opacity: 1;
+                transform: translateY(0);
+            }
+            .fade-out {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+        </style>
+
+        <div class="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4 shrink-0 w-full md:w-auto justify-center md:justify-start">
+                <div class="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center overflow-hidden shrink-0">
+                    <img src="https://lesehanmacca.com/apsejahtera12.png" alt="Logo" class="w-full h-full object-contain filter drop-shadow-[0_4px_6px_rgba(255,255,255,0.15)]">
+                </div>
+                <div class="flex flex-col justify-center">
+                    <h1 class="text-white font-extrabold text-lg md:text-2xl uppercase leading-none tracking-tighter">Apotek Sejahtera</h1>
+                    <p class="text-amber-400 text-[9px] md:text-xs font-bold tracking-[0.2em] mt-1.5 uppercase">GOR KARIANGO-KOSTRAD</p>
                 </div>
             </div>
 
-            <nav class="flex bg-slate-800 p-2 rounded-2xl w-full md:w-auto">
-                <button onclick="changeMainTab('kasir')" id="nav-kasir" class="relative flex-1 md:flex-none flex flex-col items-center justify-center px-8 py-2.5 nav-active transition-all">
+            <div class="flex-1 flex items-center justify-center my-1 md:my-0 px-2 w-full">
+                <div class="bg-slate-900/40 backdrop-blur-sm border border-white/5 py-2 px-4 rounded-2xl flex items-center gap-3 shadow-inner max-w-md lg:max-w-xl w-full justify-center">
+                    <i class="fas fa-heart-pulse text-xs text-emerald-400 shrink-0 animate-pulse"></i>
+                    <p id="health-quote" class="fade-text text-[11px] md:text-[13px] font-bold text-slate-100 tracking-wide text-center truncate">
+                        Memuat pesan kesehatan...
+                    </p>
+                </div>
+            </div>
+
+            <nav class="flex bg-slate-900/60 backdrop-blur-sm border border-white/10 p-1.5 rounded-2xl w-full md:w-auto overflow-x-auto shrink-0">
+                <button onclick="changeMainTab('kasir')" id="nav-kasir" class="relative flex-1 md:flex-none flex flex-col items-center justify-center px-4 md:px-8 py-2 nav-active transition-all">
                     <div id="badge-kasir" class="notif-badge">0</div>
-                    <i class="fas fa-cash-register text-xl mb-1"></i>
-                    <span class="text-[10px] font-black uppercase tracking-wider">Kasir</span>
+                    <i class="fas fa-cash-register text-base md:text-xl mb-1"></i>
+                    <span class="text-[9px] md:text-[10px] font-black uppercase tracking-wider">Kasir</span>
                 </button>
-                <button onclick="changeMainTab('laporan')" id="nav-laporan" class="relative flex-1 md:flex-none flex flex-col items-center justify-center px-8 py-2.5 text-slate-400 hover:text-white transition-all">
+                <button onclick="changeMainTab('laporan')" id="nav-laporan" class="relative flex-1 md:flex-none flex flex-col items-center justify-center px-4 md:px-8 py-2 text-slate-400 hover:text-white transition-all">
                     <div id="badge-laporan" class="notif-badge">0</div>
-                    <i class="fas fa-chart-line text-xl mb-1"></i>
-                    <span class="text-[10px] font-black uppercase tracking-wider">Laporan</span>
+                    <i class="fas fa-chart-line text-base md:text-xl mb-1"></i>
+                    <span class="text-[9px] md:text-[10px] font-black uppercase tracking-wider">Laporan</span>
                 </button>
-                <button onclick="changeMainTab('neraca')" id="nav-neraca" class="relative flex-1 md:flex-none flex flex-col items-center justify-center px-8 py-2.5 text-slate-400 hover:text-white transition-all">
-                    <i class="fas fa-scale-balanced text-xl mb-1"></i>
-                    <span class="text-[10px] font-black uppercase tracking-wider">Neraca</span>
+                <button onclick="changeMainTab('neraca')" id="nav-neraca" class="relative flex-1 md:flex-none flex flex-col items-center justify-center px-4 md:px-8 py-2 text-slate-400 hover:text-white transition-all">
+                    <i class="fas fa-scale-balanced text-base md:text-xl mb-1"></i>
+                    <span class="text-[9px] md:text-[10px] font-black uppercase tracking-wider">Neraca</span>
                 </button>
-                <button onclick="changeMainTab('admin')" id="nav-admin" class="relative flex-1 md:flex-none flex flex-col items-center justify-center px-8 py-2.5 text-slate-400 hover:text-white transition-all">
-                    <i class="fas fa-user-shield text-xl mb-1"></i>
-                    <span class="text-[10px] font-black uppercase tracking-wider">Admin</span>
+                <button onclick="changeMainTab('admin')" id="nav-admin" class="relative flex-1 md:flex-none flex flex-col items-center justify-center px-4 md:px-8 py-2 text-slate-400 hover:text-white transition-all">
+                    <i class="fas fa-user-shield text-base md:text-xl mb-1"></i>
+                    <span class="text-[9px] md:text-[10px] font-black uppercase tracking-wider">Admin</span>
                 </button>
             </nav>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto p-4 md:p-6">
-        <section id="section-kasir" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div class="lg:col-span-8 space-y-6">
+    <main class="max-w-7xl mx-auto p-3 md:p-6">
+
+    <!-- ==================== KASIR (Dual View) ==================== -->
+    <section id="section-kasir" class="block">
+        <div class="flex flex-col lg:grid lg:grid-cols-12 gap-6 items-start">
+            <!-- Kiri - Daftar Obat -->
+            <div class="w-full lg:col-span-8 space-y-4">
                 <div class="tab-menu" id="category-tabs">
                     <button onclick="filterKategori('ALL')" class="tab-item active">Semua Obat</button>
                     <button onclick="filterKategori('GENERIK')" class="tab-item">Generik</button>
@@ -116,101 +370,106 @@
                 <div class="relative">
                     <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     <input id="search-input" type="text" oninput="globalSearch(this.value)" placeholder="Cari nama obat..." 
-                           class="w-full p-4 pl-14 luxury-card outline-none font-bold text-sm focus:border-blue-500 shadow-sm" style="height: 56px;">
+                           class="w-full p-4 pl-14 luxury-card outline-none font-bold text-sm focus:border-blue-500 shadow-sm" style="height: 54px;">
                 </div>
-                <div id="grid-obat" class="grid grid-cols-2 md:grid-cols-4 gap-5"></div>
+                <div id="grid-obat" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
             </div>
 
-            <div class="lg:col-span-4">
-                <div class="luxury-card p-6 sticky top-28 flex flex-col h-[calc(100vh-140px)] shadow-xl border-slate-100">
-                    <div class="flex justify-between items-center border-b-2 border-slate-50 pb-4 mb-2">
-                        <h2 class="font-black text-slate-800 text-sm uppercase">Keranjang</h2>
-                        <button onclick="cart=[];renderCart();toast('Keranjang dikosongkan', 'info')" class="text-[10px] font-bold text-red-500 uppercase px-2 py-1">Hapus</button>
+            <!-- Kanan - Keranjang (Sticky) -->
+            <div class="w-full lg:col-span-4 mt-4 lg:mt-0 lg:sticky lg:top-28">
+                <div class="luxury-card p-4 md:p-6 flex flex-col h-[520px] lg:h-[calc(100vh-160px)] shadow-xl border-slate-100 bg-white">
+                    <div class="flex justify-between items-center border-b-2 border-slate-50 pb-3 mb-2">
+                        <h2 class="font-black text-slate-800 text-xs md:text-sm uppercase">Keranjang</h2>
+                        <button onclick="cart=[];renderCart();" class="text-[10px] font-bold text-red-500 uppercase px-2 py-1 hover:bg-red-50 rounded-lg transition-all">Hapus All</button>
                     </div>
                     <div id="cart-items" class="flex-1 overflow-y-auto custom-scroll pr-1">
                         <div id="empty-cart" class="h-full flex flex-col items-center justify-center text-slate-300">
-                            <i class="fas fa-receipt text-5xl mb-4 opacity-20"></i>
+                            <i class="fas fa-receipt text-4xl mb-3 opacity-20"></i>
                             <p class="text-[10px] font-bold uppercase tracking-widest">Kosong</p>
                         </div>
                     </div>
-                    <div class="pt-4 border-t-2 border-slate-50 space-y-4">
-                        <div class="bg-blue-600 p-4 rounded-2xl flex justify-between items-center text-white">
-                            <span id="cart-total" class="text-2xl font-black">Rp 0</span>
-                            <i class="fas fa-wallet opacity-30 text-2xl"></i>
+                    <div class="pt-3 border-t-2 border-slate-50 space-y-3 shrink-0">
+                        <div class="bg-blue-600 p-3.5 rounded-xl flex justify-between items-center text-white shadow-md">
+                            <span id="cart-total" class="text-xl md:text-2xl font-black">Rp 0</span>
+                            <i class="fas fa-wallet opacity-30 text-xl"></i>
                         </div>
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-2 gap-2.5">
                             <input type="text" id="cash-input" onkeyup="formatCurrencyInput(this); updateKembalian()" placeholder="Bayar"
-                                   class="w-full p-3 bg-slate-50 rounded-xl font-black text-base outline-none border focus:border-blue-500">
-                            <div id="change-text" class="w-full p-3 bg-slate-900 text-amber-400 rounded-xl font-black text-base truncate">Rp 0</div>
+                                   class="w-full p-2.5 bg-slate-50 rounded-xl font-black text-sm md:text-base outline-none border border-slate-200 focus:border-blue-500">
+                            <div id="change-text" class="w-full p-2.5 bg-slate-900 text-amber-400 rounded-xl font-black text-sm md:text-base truncate flex items-center px-3">Rp 0</div>
                         </div>
-                        <button onclick="bayarSekarang()" class="w-full bg-slate-900 text-white font-black py-4 rounded-2xl uppercase text-xs">Selesaikan Transaksi</button>
+                        <button onclick="bayarSekarang()" class="w-full bg-slate-900 text-white font-black py-3.5 rounded-xl uppercase text-[11px] md:text-xs tracking-wider hover:bg-slate-800 transition-all shadow-md">Selesaikan Transaksi</button>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <section id="section-laporan" class="hidden space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div class="luxury-card p-6 border-l-8 border-blue-600 shadow-lg">
-                    <div class="flex justify-between items-center mb-2">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pendapatan Hari Ini</p>
-                        <input type="date" id="filter-hari" onchange="updateLaporanHarian()" class="text-[10px] font-bold bg-slate-50 p-1 rounded">
-                    </div>
-                    <h3 id="stat-hari-val" class="text-3xl font-black text-blue-600">Rp 0</h3>
+    <!-- ==================== LAPORAN ==================== -->
+    <section id="section-laporan" class="hidden space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="luxury-card p-5 border-l-8 border-blue-600 shadow-lg">
+                <div class="flex justify-between items-center mb-2">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pendapatan Hari Ini</p>
+                    <input type="date" id="filter-hari" onchange="updateLaporanHarian()" class="text-[10px] font-bold bg-slate-50 p-1 rounded">
                 </div>
-                <div class="luxury-card p-6 border-l-8 border-slate-900 shadow-lg">
-                    <div class="flex justify-between items-center mb-2">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Bulan Ini</p>
-                        <input type="month" id="filter-bulan" onchange="updateLaporanBulanan()" class="text-[10px] font-bold bg-slate-50 p-1 rounded">
-                    </div>
-                    <h3 id="stat-bulan-val" class="text-3xl font-black text-slate-900">Rp 0</h3>
+                <h3 id="stat-hari-val" class="text-2xl md:text-3xl font-black text-blue-600">Rp 0</h3>
+            </div>
+            <div class="luxury-card p-5 border-l-8 border-slate-900 shadow-lg">
+                <div class="flex justify-between items-center mb-2">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Bulan Ini</p>
+                    <input type="month" id="filter-bulan" onchange="updateLaporanBulanan()" class="text-[10px] font-bold bg-slate-50 p-1 rounded">
+                </div>
+                <h3 id="stat-bulan-val" class="text-2xl md:text-3xl font-black text-slate-900">Rp 0</h3>
+            </div>
+        </div>
+        <div class="luxury-card overflow-hidden shadow-xl">
+            <div class="bg-slate-50 p-4 border-b">
+                <h3 class="font-black text-slate-800 text-[10px] uppercase">Rincian Transaksi Terakhir</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-white text-[10px] font-black text-slate-300 uppercase border-b">
+                        <tr><th class="p-4 md:p-6">Waktu</th><th class="p-4 md:p-6">Items</th><th class="p-4 md:p-6 text-right">Total</th></tr>
+                    </thead>
+                    <tbody id="tabel-history-raw" class="divide-y text-xs font-bold text-slate-600"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== NERACA ==================== -->
+    <section id="section-neraca" class="hidden space-y-6">
+        <div class="flex justify-between items-center">
+            <h2 class="text-lg md:text-xl font-black text-slate-800 uppercase">Neraca Keuangan</h2>
+            <input type="month" id="neraca-filter-bulan" onchange="loadNeraca()" class="bg-white border p-2 rounded-xl font-bold text-xs">
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="luxury-card p-5 bg-blue-600 text-white border-none">
+                <p class="text-[9px] font-black opacity-70 uppercase tracking-widest">Total Penjualan</p>
+                <h3 id="neraca-total-jual" class="text-xl md:text-2xl font-black">Rp 0</h3>
+            </div>
+            <div class="luxury-card p-5 bg-red-500 text-white border-none">
+                <p class="text-[9px] font-black opacity-70 uppercase tracking-widest">Total Pengeluaran</p>
+                <h3 id="neraca-total-keluar" class="text-xl md:text-2xl font-black">Rp 0</h3>
+            </div>
+            <div class="luxury-card p-5 bg-emerald-500 text-white border-none">
+                <p class="text-[9px] font-black opacity-70 uppercase tracking-widest">Laba Bersih</p>
+                <h3 id="neraca-laba-bersih" class="text-xl md:text-2xl font-black">Rp 0</h3>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1 luxury-card p-5 h-fit">
+                <h3 class="font-black text-slate-800 uppercase text-[10px] mb-4">Input Pengeluaran</h3>
+                <div class="space-y-3">
+                    <input type="text" id="exp-ket" placeholder="Keterangan" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm">
+                    <input type="text" id="exp-nom" onkeyup="formatCurrencyInput(this)" placeholder="Nominal" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm">
+                    <input type="date" id="exp-tgl" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm">
+                    <button onclick="simpanPengeluaran()" class="w-full bg-slate-900 text-white font-black py-3 rounded-xl uppercase text-[10px]">Simpan</button>
                 </div>
             </div>
-            <div class="luxury-card overflow-hidden shadow-xl">
-                <div class="bg-slate-50 p-4 border-b">
-                    <h3 class="font-black text-slate-800 text-[10px] uppercase">Rincian Transaksi Terakhir</h3>
-                </div>
+            <div class="lg:col-span-2 luxury-card overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-white text-[10px] font-black text-slate-300 uppercase border-b">
-                            <tr><th class="p-6">Waktu</th><th class="p-6">Items</th><th class="p-6 text-right">Total</th></tr>
-                        </thead>
-                        <tbody id="tabel-history-raw" class="divide-y text-xs font-bold text-slate-600"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <section id="section-neraca" class="hidden space-y-8">
-            <div class="flex justify-between items-center">
-                <h2 class="text-xl font-black text-slate-800 uppercase">Neraca Keuangan</h2>
-                <input type="month" id="neraca-filter-bulan" onchange="loadNeraca()" class="bg-white border p-2 rounded-xl font-bold text-xs">
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="luxury-card p-6 bg-blue-600 text-white border-none">
-                    <p class="text-[9px] font-black opacity-70 uppercase tracking-widest">Total Penjualan</p>
-                    <h3 id="neraca-total-jual" class="text-2xl font-black">Rp 0</h3>
-                </div>
-                <div class="luxury-card p-6 bg-red-500 text-white border-none">
-                    <p class="text-[9px] font-black opacity-70 uppercase tracking-widest">Total Pengeluaran</p>
-                    <h3 id="neraca-total-keluar" class="text-2xl font-black">Rp 0</h3>
-                </div>
-                <div class="luxury-card p-6 bg-emerald-500 text-white border-none">
-                    <p class="text-[9px] font-black opacity-70 uppercase tracking-widest">Laba Bersih</p>
-                    <h3 id="neraca-laba-bersih" class="text-2xl font-black">Rp 0</h3>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-1 luxury-card p-6 h-fit">
-                    <h3 class="font-black text-slate-800 uppercase text-[10px] mb-4">Input Pengeluaran</h3>
-                    <div class="space-y-3">
-                        <input type="text" id="exp-ket" placeholder="Keterangan" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm">
-                        <input type="text" id="exp-nom" onkeyup="formatCurrencyInput(this)" placeholder="Nominal" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm">
-                        <input type="date" id="exp-tgl" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm">
-                        <button onclick="simpanPengeluaran()" class="w-full bg-slate-900 text-white font-black py-3 rounded-xl uppercase text-[10px]">Simpan</button>
-                    </div>
-                </div>
-                <div class="lg:col-span-2 luxury-card overflow-hidden">
                     <table class="w-full text-left">
                         <thead class="bg-slate-50 text-[9px] font-black text-slate-400 uppercase border-b">
                             <tr><th class="p-4">Tgl</th><th class="p-4">Ket</th><th class="p-4 text-right">Nominal</th><th class="p-4 text-center">Aksi</th></tr>
@@ -219,64 +478,73 @@
                     </table>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <section id="section-admin" class="hidden space-y-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-1">
-                    <div class="luxury-card p-6 shadow-xl sticky top-28 border-t-4 border-blue-600">
-                        <div class="flex items-center gap-3 mb-6">
-                            <i class="fas fa-edit text-blue-600 text-xl"></i>
-                            <h2 id="admin-form-title" class="font-black uppercase text-sm text-slate-800">Tambah Obat Baru</h2>
+    <!-- ==================== ADMIN ==================== -->
+    <section id="section-admin" class="hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            <div class="lg:col-span-1">
+                <div class="luxury-card p-5 shadow-xl lg:sticky lg:top-28 border-t-4 border-blue-600 bg-white">
+                    <div class="flex items-center gap-3 mb-5">
+                        <i class="fas fa-edit text-blue-600 text-lg"></i>
+                        <h2 id="admin-form-title" class="font-black uppercase text-xs md:text-sm text-slate-800">Tambah Obat Baru</h2>
+                    </div>
+                    <div class="space-y-3.5">
+                        <input type="hidden" id="adm-id">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Nama Obat</label>
+                            <input type="text" id="adm-nama" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm outline-none focus:border-blue-500">
                         </div>
-                        <div class="space-y-4">
-                            <input type="hidden" id="adm-id">
+                        
+                        <div class="grid grid-cols-3 gap-2">
                             <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Nama Obat</label>
-                                <input type="text" id="adm-nama" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm outline-none focus:border-blue-500">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Kategori</label>
+                                <select id="adm-kat" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-xs">
+                                    <option value="GENERIK">GENERIK</option>
+                                    <option value="ANALGESIK">ANALGESIK</option>
+                                    <option value="SYRUP">SYRUP</option>
+                                    <option value="KERAS">OBAT KERAS</option>
+                                    <option value="VITAMIN">VITAMIN</option>
+                                </select>
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Kategori</label>
-                                    <select id="adm-kat" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm">
-                                        <option value="GENERIK">GENERIK</option>
-                                        <option value="ANALGESIK">ANALGESIK</option>
-                                        <option value="SYRUP">SYRUP</option>
-                                        <option value="KERAS">OBAT KERAS</option>
-                                        <option value="VITAMIN">VITAMIN</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Stok</label>
-                                    <input type="number" id="adm-stok" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm">
-                                </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Stok</label>
+                                <input type="number" id="adm-stok" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm">
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Harga Jual</label>
-                                    <input type="text" id="adm-harga" onkeyup="formatCurrencyInput(this)" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Exp Date</label>
-                                    <input type="date" id="adm-exp" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm">
-                                </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">No. Batch</label>
+                                <input type="text" id="adm-batch" placeholder="Otomatis" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-xs uppercase outline-none focus:border-blue-500">
                             </div>
-                            <div class="pt-2 flex gap-2">
-                                <button onclick="saveProduct()" class="flex-1 bg-blue-600 text-white p-4 rounded-xl font-black uppercase text-[10px]">Simpan Data</button>
-                                <button onclick="resetAdminForm()" class="bg-slate-200 text-slate-600 px-4 rounded-xl hover:bg-slate-300 transition-all"><i class="fas fa-sync-alt"></i></button>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Harga Jual</label>
+                                <input type="text" id="adm-harga" onkeyup="formatCurrencyInput(this)" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm">
                             </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Exp Date</label>
+                                <input type="date" id="adm-exp" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm">
+                            </div>
+                        </div>
+                        <div class="pt-2 flex gap-2">
+                            <button onclick="saveProduct()" class="flex-1 bg-blue-600 text-white p-3.5 rounded-xl font-black uppercase text-[10px]">Simpan Data</button>
+                            <button onclick="resetAdminForm()" class="bg-slate-200 text-slate-600 px-4 rounded-xl hover:bg-slate-300 transition-all"><i class="fas fa-sync-alt"></i></button>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="lg:col-span-2 space-y-4">
-                    <div class="luxury-card p-4 flex items-center gap-4 shadow-sm">
-                        <i class="fas fa-search text-slate-400 ml-2"></i>
-                        <input type="text" id="admin-search" oninput="filterAdminTable(this.value)" placeholder="Cari di inventaris..." class="w-full outline-none font-bold text-sm">
-                        <div class="bg-slate-100 px-3 py-1 rounded-lg text-[10px] font-black text-slate-500 uppercase">Total: <span id="admin-total-count">0</span></div>
-                    </div>
-                    
-                    <div class="luxury-card overflow-hidden shadow-xl">
+            <div class="lg:col-span-2 space-y-4">
+                <div class="luxury-card p-4 flex items-center gap-4 shadow-sm">
+                    <i class="fas fa-search text-slate-400 ml-2"></i>
+                    <input type="text" id="admin-search" oninput="filterAdminTable(this.value)" placeholder="Cari di inventaris..." class="w-full outline-none font-bold text-sm">
+                    <div class="bg-slate-100 px-3 py-1 rounded-lg text-[10px] font-black text-slate-500 uppercase">Total: <span id="admin-total-count">0</span></div>
+                </div>
+                
+                <div class="luxury-card overflow-hidden shadow-xl">
+                    <div class="overflow-x-auto">
                         <table class="w-full text-left">
                             <thead class="bg-slate-900 text-white text-[10px] font-black uppercase">
                                 <tr>
@@ -291,19 +559,92 @@
                     </div>
                 </div>
             </div>
-        </section>
-    </main>
+        </div>
+    </section>
 
-    <script>
-// Fungsi untuk scroll ke atas secara halus
-function scrollToTop() {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-    });
+</main>
+  
+<div id="app-loading" class="fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center transition-all duration-500">
+    <div class="flex flex-col items-center">
+        <div class="relative mb-6">
+            <div class="absolute inset-0 rounded-full bg-emerald-400/20 animate-ping"></div>
+            <div id="loading-icon" class="relative w-28 h-28 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-2xl flex items-center justify-center border-4 border-white/10 transition-all duration-500">
+                <i id="loading-icon-inner" class="fas fa-heart-pulse text-white text-5xl animate-pulse"></i>
+            </div>
+            <div class="absolute -top-2 -right-2 w-10 h-10 rounded-full bg-amber-400 flex items-center justify-center shadow-lg animate-bounce">
+                <i class="fas fa-capsules text-slate-900 text-sm"></i>
+            </div>
+        </div>
+        <h2 class="text-white font-black text-xl uppercase tracking-wider text-center">Apotek Sejahtera</h2>
+        <p id="loading-message" class="text-emerald-400 text-sm font-bold mt-2 tracking-wide text-center transition-all duration-300">Sedang Memuat Daftar Obat...</p>
+        <p class="text-slate-400 text-xs mt-2 font-semibold">Mohon tunggu sebentar</p>
+        <div class="flex gap-2 mt-5">
+            <span class="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-bounce"></span>
+            <span class="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-bounce delay-150"></span>
+            <span class="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-bounce delay-300"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+const loadingAnimations = [
+    { icon: 'fa-heart-pulse', text: 'Sedang Memuat Daftar Obat...' },
+    { icon: 'fa-capsules', text: 'Menghubungkan Ke Database...' },
+    { icon: 'fa-prescription-bottle-medical', text: 'Menyiapkan Sistem Kasir...' },
+    { icon: 'fa-staff-snake', text: 'Memeriksa Data Inventaris...' },
+    { icon: 'fa-kit-medical', text: 'Menyiapkan Pelayanan Apotek...' }
+];
+
+let loadingInterval = null;
+let loadingIndex = 0;
+
+function showLoading() {
+    const loading = document.getElementById('app-loading');
+    if (!loading) return;
+    loading.classList.remove('hidden');
+    loading.style.opacity = '1';
+    startLoadingAnimation();
 }
 
-// Logika untuk menampilkan/menyembunyikan tombol saat scroll
+function hideLoading() {
+    const loading = document.getElementById('app-loading');
+    if (!loading) return;
+    stopLoadingAnimation();
+    loading.style.opacity = '0';
+    setTimeout(() => {
+        loading.classList.add('hidden');
+    }, 300);
+}
+
+function startLoadingAnimation() {
+    clearInterval(loadingInterval);
+    const iconEl = document.getElementById('loading-icon-inner');
+    const textEl = document.getElementById('loading-message');
+
+    loadingInterval = setInterval(() => {
+        loadingIndex++;
+        if (loadingIndex >= loadingAnimations.length) { loadingIndex = 0; }
+        const current = loadingAnimations[loadingIndex];
+        iconEl.style.opacity = '0';
+        textEl.style.opacity = '0';
+
+        setTimeout(() => {
+            iconEl.className = `fas ${current.icon} text-white text-5xl animate-pulse`;
+            textEl.innerText = current.text;
+            iconEl.style.opacity = '1';
+            textEl.style.opacity = '1';
+        }, 250);
+    }, 2200);
+}
+
+function stopLoadingAnimation() { clearInterval(loadingInterval); }
+</script>
+
+<script>
+function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 window.onscroll = function() {
     const btn = document.getElementById("btn-to-top");
     if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
@@ -314,7 +655,7 @@ window.onscroll = function() {
         btn.classList.add("translate-y-20", "opacity-0");
     }
 };
-        // --- CONFIG ---
+
         const firebaseConfig = {
             apiKey: "AIzaSyCfi8bqVns9WvdrbTMVcJkYcKn-w1lX-Go",
             authDomain: "ap0tik-reny.firebaseapp.com",
@@ -342,36 +683,31 @@ window.onscroll = function() {
         function getRawValue(str) {
             return parseInt(str.replace(/\./g, "")) || 0;
         }
-// --- FETCH DATA OBAT dengan realtime listener ---
+
 let obatListener = null;
 
 function loadObatRealtime() {
-    if (obatListener) {
-        obatListener.off(); // hapus listener lama kalau ada
-    }
+    showLoading();
+    if (obatListener) { obatListener.off(); }
 
     obatListener = db.ref('obat').on('value', snapshot => {
         const data = snapshot.val() || {};
         localData = data;
-
         console.log('✅ DATA OBAT DIUPDATE:', Object.keys(localData).length, 'obat');
 
-        // Render ulang semua yang butuh data obat
-        renderInitialGrid();      // grid di kasir
-        renderAdminTable();       // tabel di admin
+        renderInitialGrid();
+        renderAdminTable();
 
-        // Update jumlah total di admin
         const countEl = document.getElementById('admin-total-count');
-        if (countEl) {
-            countEl.innerText = Object.keys(localData).length;
-        }
+        if (countEl) { countEl.innerText = Object.keys(localData).length; }
+        hideLoading();
     }, error => {
         console.error('❌ GAGAL LOAD DATA OBAT:', error.code, error.message);
+        hideLoading();
         toast('Gagal memuat data obat dari server', 'error');
     });
 }
 
-// Panggil fungsi ini sekali saat awal load
 loadObatRealtime();
         db.ref('history').on('value', s => { 
             dataHistoryGlobal = s.val() || {}; 
@@ -380,57 +716,81 @@ loadObatRealtime();
         });
         db.ref('pengeluaran').on('value', s => { dataPengeluaranGlobal = s.val() || {}; loadNeraca(); });
 
-        // --- NAVIGATION & ADMIN POPUP ---
-        async function changeMainTab(id) {
-            if(id === 'admin') {
-                const { value: pass } = await Swal.fire({
-                    title: '',
-                    html: `
-                        <div class="flex flex-col items-center">
-                            <div class="bg-amber-100 w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-inner">
-                                <i class="fas fa-user-shield text-amber-600 text-5xl"></i>
-                            </div>
-                            <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">Akses Terbatas</h2>
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Masukkan Kode Keamanan</p>
-                            <input type="password" id="admin-pass-input" class="swal2-input admin-swal-input" placeholder="••••••">
-                        </div>
-                    `,
-                    showCancelButton: true,
-                    confirmButtonText: 'MASUK SEKARANG',
-                    cancelButtonText: 'BATAL',
-                    confirmButtonColor: '#0f172a',
-                    cancelButtonColor: '#f1f5f9',
-                    customClass: {
-                        popup: 'admin-swal-popup',
-                        confirmButton: 'rounded-2xl font-black py-4 px-8 text-xs tracking-widest',
-                        cancelButton: 'rounded-2xl font-black py-4 px-8 text-xs tracking-widest text-slate-400'
-                    },
-                    preConfirm: () => {
-                        const val = document.getElementById('admin-pass-input').value;
-                        if (!val) { Swal.showValidationMessage('Kode harus diisi!'); }
-                        return val;
-                    }
-                });
-
-                if(pass === "sejahtera12") {
-                    toast('Akses Diberikan', 'success');
-                } else {
-                    if(pass !== undefined) toast('Kode Salah!', 'error');
-                    return;
+     async function changeMainTab(id) {
+    // === PASSWORD PROTECT UNTUK ADMIN ===
+    if (id === 'admin') {
+        const { value: pass } = await Swal.fire({
+            title: '',
+            html: `
+                <div class="flex flex-col items-center">
+                    <div class="bg-amber-100 w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                        <i class="fas fa-user-shield text-amber-600 text-5xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">Akses Terbatas</h2>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Masukkan Kode Keamanan</p>
+                    <input type="password" id="admin-pass-input" class="swal2-input admin-swal-input" placeholder="••••••">
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'MASUK SEKARANG',
+            cancelButtonText: 'BATAL',
+            confirmButtonColor: '#0f172a',
+            cancelButtonColor: '#f1f5f9',
+            customClass: {
+                popup: 'admin-swal-popup',
+                confirmButton: 'rounded-2xl font-black py-4 px-8 text-xs tracking-widest',
+                cancelButton: 'rounded-2xl font-black py-4 px-8 text-xs tracking-widest text-slate-400'
+            },
+            preConfirm: () => {
+                const val = document.getElementById('admin-pass-input').value;
+                if (!val) { 
+                    Swal.showValidationMessage('Kode harus diisi!'); 
+                    return false;
                 }
+                return val;
             }
-            
-            // Logic ganti tab
-            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.getElementById('section-' + id).classList.remove('hidden');
-            document.querySelectorAll('nav button').forEach(b => {
-                b.className = "relative flex-1 md:flex-none flex flex-col items-center justify-center px-8 py-2.5 text-slate-400 hover:text-white transition-all";
-            });
-            document.getElementById('nav-' + id).className = "relative flex-1 md:flex-none flex flex-col items-center justify-center px-8 py-2.5 nav-active transition-all";
-            if(id === 'neraca') loadNeraca();
-        }
+        });
 
-        // --- RENDER GRID KASIR ---
+        if (pass !== "sejahtera12") {
+            if (pass !== undefined) toast('Kode Salah!', 'error');
+            return;
+        }
+        
+        toast('Akses Diberikan', 'success');
+    }
+
+    // === Sembunyikan semua section ===
+    document.querySelectorAll('main > section').forEach(section => {
+        section.classList.add('hidden');
+    });
+
+    // === Tampilkan section yang dipilih ===
+    const targetSection = document.getElementById('section-' + id);
+    if (targetSection) {
+        targetSection.classList.remove('hidden');
+    }
+
+    // === Update tampilan navigasi ===
+    document.querySelectorAll('header nav button').forEach(btn => {
+        btn.classList.remove('nav-active');
+        btn.classList.add('text-slate-400');
+    });
+
+    const activeNav = document.getElementById('nav-' + id);
+    if (activeNav) {
+        activeNav.classList.add('nav-active');
+        activeNav.classList.remove('text-slate-400');
+    }
+
+    // === Load data tambahan jika diperlukan ===
+    if (id === 'neraca') {
+        loadNeraca();
+    }
+    if (id === 'laporan') {
+        initLaporanDefault();
+    }
+}
+
         function renderInitialGrid() {
             const container = document.getElementById('grid-obat');
             container.innerHTML = ''; 
@@ -438,29 +798,48 @@ loadObatRealtime();
                 const item = localData[id];
                 const badge = getFarmasiStyle(item.kategori);
                 const stokColor = item.stok > 10 ? 'bg-green-500' : (item.stok > 4 ? 'bg-amber-500' : 'bg-red-500');
+                
+                const imageContent = item.gambar 
+                    ? `<img src="${item.gambar}" class="transition-transform duration-300 group-hover:scale-110">`
+                    : `<div class="logo-placeholder"><i class="fas fa-prescription-bottle-alt text-3xl opacity-30"></i></div>`;
+
+                const batchHTML = (item.no_batch && item.no_batch !== '-') 
+                    ? `<p class="text-[9px] text-amber-600 font-bold mb-1">Batch: ${item.no_batch}</p>` 
+                    : '';
+
                 const card = document.createElement('div');
-                card.className = "prod-item product-card luxury-card cursor-pointer";
+                card.className = "prod-item product-card luxury-card cursor-pointer group";
                 card.onclick = () => addToCart(id);
-                card.innerHTML = `<div class="image-box"><div class="logo-placeholder"><i class="fas fa-prescription-bottle-alt text-3xl opacity-30"></i></div><span class="badge-exp">${item.expired || 'No Exp'}</span><span class="badge-farmasi ${badge.css}">${badge.txt}</span><span class="badge-stok-circle ${stokColor}">${item.stok}</span></div><div class="p-4"><h3 class="font-bold text-[11px] uppercase truncate text-slate-800 mb-1">${item.nama}</h3><p class="text-blue-600 font-extrabold text-[13px]">Rp ${(item.harga_biji || 0).toLocaleString('id-ID')}</p></div>`;
+                
+                card.innerHTML = `
+                    <div class="image-box">
+                        ${imageContent}
+                        <span class="badge-exp">${item.expired || 'No Exp'}</span>
+                        <span class="badge-farmasi ${badge.css}">${badge.txt}</span>
+                        <span class="badge-stok-circle ${stokColor}">${item.stok}</span>
+                    </div>
+                    <div class="p-3 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-[11px] uppercase truncate text-slate-800 mb-0.5">${item.nama}</h3>
+                            ${batchHTML}
+                        </div>
+                        <p class="text-blue-600 font-extrabold text-[12px] md:text-[13px] mt-1.5">Rp ${(item.harga_biji || 0).toLocaleString('id-ID')}</p>
+                    </div>
+                `;
+                
                 card.setAttribute('data-category', item.kategori || 'LAINNYA');
-               card.setAttribute('data-name', (item.nama || '').toLowerCase());
+                const batchSearch = item.no_batch ? ' ' + item.no_batch.toLowerCase() : '';
+                card.setAttribute('data-name', (item.nama || '').toLowerCase() + batchSearch);
                 container.appendChild(card);
             });
             filterCari();
         }
 
-        // --- ADMIN LOGIC ---
-       function renderAdminTable() {
-    console.log('renderAdminTable dipanggil - jumlah:', Object.keys(localData).length);
-    
+    function renderAdminTable() {
     const tbody = document.getElementById('admin-table-body');
-    if (!tbody) {
-        console.error('Elemen tbody tidak ditemukan');
-        return;
-    }
+    if (!tbody) return;
     
-    tbody.innerHTML = '';  // kosongkan
-    
+    tbody.innerHTML = '';
     const keys = Object.keys(localData);
     let renderedCount = 0;
     
@@ -468,21 +847,21 @@ loadObatRealtime();
         const item = localData[id];
         if (!item || typeof item !== 'object') return;
         
-        // Skip kalau data rusak parah, tapi tetap render yang lain
         const nama   = item.nama   || 'Nama Tidak Ada';
         const kat    = item.kategori || '?';
         const stok   = Number(item.stok)   || 0;
         const harga  = Number(item.harga_biji) || 0;
         const exp    = item.expired || '-';
+        const batch  = item.no_batch || '-';
         
         const row = document.createElement('tr');
         row.className = 'admin-row hover:bg-slate-50 transition-colors';
-        row.setAttribute('data-search', nama.toLowerCase());
+        row.setAttribute('data-search', nama.toLowerCase() + ' ' + batch.toLowerCase());
         
         row.innerHTML = `
             <td class="p-4">
                 <div class="font-black uppercase text-[11px]">${nama}</div>
-                <div class="text-[9px] text-slate-400">${kat} | Exp: ${exp}</div>
+                <div class="text-[9px] text-slate-400">${kat} | <span class="text-amber-600 font-bold">Batch: ${batch}</span> | Exp: ${exp}</div>
             </td>
             <td class="p-4 text-center">
                 <span class="px-2 py-1 rounded-md ${stok < 5 ? 'bg-red-100 text-red-600' : 'bg-slate-100'}">${stok}</span>
@@ -495,50 +874,55 @@ loadObatRealtime();
                 </div>
             </td>
         `;
-        
         tbody.appendChild(row);
         renderedCount++;
     });
     
-    document.getElementById('admin-total-count').innerText = renderedCount;
+    const totalCountElem = document.getElementById('admin-total-count');
+    if (totalCountElem) { totalCountElem.innerText = renderedCount; }
 }
 
-        function filterAdminTable(val) {
-            const query = val.toLowerCase();
-            document.querySelectorAll('.admin-row').forEach(row => {
-                row.style.display = row.getAttribute('data-search').includes(query) ? '' : 'none';
-            });
-        }
+function filterAdminTable(val) {
+    const query = val.toLowerCase();
+    document.querySelectorAll('.admin-row').forEach(row => {
+        row.style.display = row.getAttribute('data-search').includes(query) ? '' : 'none';
+    });
+}
 
-        function editProduct(id) {
-            const item = localData[id];
-            document.getElementById('adm-id').value = id;
-            document.getElementById('adm-nama').value = item.nama;
-            document.getElementById('adm-kat').value = item.kategori;
-            document.getElementById('adm-stok').value = item.stok;
-            document.getElementById('adm-harga').value = item.harga_biji.toLocaleString('id-ID');
-            document.getElementById('adm-exp').value = item.expired || '';
-            document.getElementById('admin-form-title').innerText = "Edit Obat: " + item.nama;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            toast('Data dimuat ke form', 'info');
-        }
+function editProduct(id) {
+    const item = localData[id];
+    document.getElementById('adm-id').value = id;
+    document.getElementById('adm-nama').value = item.nama;
+    document.getElementById('adm-kat').value = item.kategori;
+    document.getElementById('adm-stok').value = item.stok;
+    document.getElementById('adm-harga').value = item.harga_biji.toLocaleString('id-ID');
+    document.getElementById('adm-exp').value = item.expired || '';
+    document.getElementById('adm-batch').value = item.no_batch || '';
+    document.getElementById('admin-form-title').innerText = "Edit Obat: " + item.nama;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    toast('Data dimuat ke form', 'info');
+}
 
-        async function deleteProduct(id) {
-            const res = await Swal.fire({
-                title: 'Hapus Obat?',
-                text: "Data '" + localData[id].nama + "' akan dihapus permanen.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                confirmButtonText: 'Ya, Hapus!'
-            });
-            if(res.isConfirmed) { await db.ref('obat/' + id).remove(); toast('Berhasil Dihapus', 'success'); }
-        }
+async function deleteProduct(id) {
+    const res = await Swal.fire({
+        title: 'Hapus Obat?',
+        text: "Data '" + localData[id].nama + "' akan dihapus permanen.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        confirmButtonText: 'Ya, Hapus!'
+    });
+    if(res.isConfirmed) { await db.ref('obat/' + id).remove(); toast('Berhasil Dihapus', 'success'); }
+}
 
-        async function saveProduct() {
+async function saveProduct() {
             const idInput = document.getElementById('adm-id').value;
             const nama = document.getElementById('adm-nama').value;
             if(!nama) return toast('Isi nama obat!', 'error');
+
+            const batchEl = document.getElementById('adm-batch');
+            let batchInput = batchEl ? batchEl.value.trim().toUpperCase() : '';
+            if (!batchInput) { batchInput = '-'; }
 
             const id = idInput || nama.toLowerCase().replace(/\s+/g,'-');
             const data = {
@@ -546,7 +930,8 @@ loadObatRealtime();
                 kategori: document.getElementById('adm-kat').value,
                 stok: parseInt(document.getElementById('adm-stok').value) || 0,
                 harga_biji: getRawValue(document.getElementById('adm-harga').value),
-                expired: document.getElementById('adm-exp').value
+                expired: document.getElementById('adm-exp').value,
+                no_batch: batchInput
             };
 
             await db.ref('obat/' + id).update(data);
@@ -554,75 +939,141 @@ loadObatRealtime();
             resetAdminForm();
         }
 
-        function resetAdminForm() {
-            document.getElementById('adm-id').value = '';
-            document.getElementById('adm-nama').value = '';
-            document.getElementById('adm-stok').value = '';
-            document.getElementById('adm-harga').value = '';
-            document.getElementById('adm-exp').value = '';
-            document.getElementById('admin-form-title').innerText = "Tambah Obat Baru";
-        }
+function resetAdminForm() {
+    document.getElementById('adm-id').value = '';
+    document.getElementById('adm-nama').value = '';
+    document.getElementById('adm-stok').value = '';
+    document.getElementById('adm-harga').value = '';
+    document.getElementById('adm-exp').value = '';
+    document.getElementById('adm-batch').value = '';
+    document.getElementById('admin-form-title').innerText = "Tambah Obat Baru";
+}
 
-        // --- KASIR LOGIC ---
-        function addToCart(id) {
-            const it = localData[id];
-            if(it.stok <= 0) return toast('Stok Habis!', 'error');
-            const exist = cart.find(c => c.id === id);
-            if(exist) { if(exist.qty < it.stok) exist.qty++; }
-            else { cart.push({id, nama:it.nama, harga:it.harga_biji, qty:1}); }
-            renderCart();
-            toast(it.nama + ' ditambah', 'success');
+function addToCart(id) {
+    const it = localData[id];
+    if (!it || it.stok <= 0) return toast('Stok Habis!', 'error');
+    
+    const exist = cart.find(c => c.id === id);
+    if (exist) { 
+        if (exist.qty < it.stok) {
+            exist.qty++; 
+        } else {
+            return toast('Stok maksimal tercapai!', 'warning');
         }
+    } else { 
+        cart.push({id, nama: it.nama, harga: it.harga_biji, qty: 1}); 
+    }
+    renderCart();
+}
 
-        function renderCart() {
-            const list = document.getElementById('cart-items');
-            list.innerHTML = ''; let total = 0;
-            if(cart.length === 0) { 
-                list.innerHTML = `<div id="empty-cart" class="h-full flex flex-col items-center justify-center text-slate-300"><i class="fas fa-receipt text-5xl mb-4 opacity-20"></i><p class="text-[10px] font-bold uppercase tracking-widest">Kosong</p></div>`; 
-                document.getElementById('cart-total').innerText = "Rp 0"; 
-                window.totalPrice = 0; updateKembalian(); 
-                document.getElementById('badge-kasir').style.visibility = 'hidden';
-                return; 
-            }
-            cart.forEach(c => {
-                const sub = c.harga * c.qty; total += sub;
-                const div = document.createElement('div');
-                div.className = "cart-item flex justify-between items-center gap-2";
-                div.innerHTML = `<div class="flex-1 min-w-0"><h4 class="font-bold text-[10px] uppercase truncate text-slate-800">${c.nama}</h4><span class="text-[9px] font-bold text-slate-400">@${c.harga.toLocaleString()}</span></div><div class="qty-container"><button onclick="changeQty('${c.id}', -1)" class="qty-btn">-</button><span class="font-black text-[11px] w-6 text-center">${c.qty}</span><button onclick="changeQty('${c.id}', 1)" class="qty-btn">+</button></div><div class="text-right min-w-[70px] font-black text-blue-600 text-[11px]">Rp ${sub.toLocaleString()}</div>`;
-                list.appendChild(div);
-            });
-            document.getElementById('cart-total').innerText = "Rp " + total.toLocaleString();
-            window.totalPrice = total; updateKembalian();
-            document.getElementById('badge-kasir').innerText = cart.length;
-            document.getElementById('badge-kasir').style.visibility = 'visible';
-        }
+function renderCart() {
+    const list = document.getElementById('cart-items');
+    
+    if (cart.length === 0) { 
+        list.innerHTML = `<div id="empty-cart" class="h-full flex flex-col items-center justify-center text-slate-300"><i class="fas fa-receipt text-4xl mb-3 opacity-20"></i><p class="text-[10px] font-bold uppercase tracking-widest">Kosong</p></div>`; 
+        document.getElementById('cart-total').innerText = "Rp 0"; 
+        window.totalPrice = 0; 
+        updateKembalian(); 
+        document.getElementById('badge-kasir').style.visibility = 'hidden';
+        return; 
+    }
+    
+    let total = 0;
+    const fragment = document.createDocumentFragment();
+    
+    cart.forEach(c => {
+        const sub = c.harga * c.qty; 
+        total += sub;
+        
+        const div = document.createElement('div');
+        div.className = "cart-item flex justify-between items-center gap-2";
+        div.innerHTML = `
+            <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-[10px] uppercase truncate text-slate-800">${c.nama}</h4>
+                <span class="text-[9px] font-bold text-slate-400">@${c.harga.toLocaleString('id-ID')}</span>
+            </div>
+            <div class="qty-container">
+                <button onclick="changeQty('${c.id}', -1)" class="qty-btn hover:bg-slate-200 active:scale-95">-</button>
+                <span class="font-black text-[11px] w-6 text-center">${c.qty}</span>
+                <button onclick="changeQty('${c.id}', 1)" class="qty-btn hover:bg-slate-200 active:scale-95">+</button>
+            </div>
+            <div class="text-right min-w-[65px] font-black text-blue-600 text-[11px]">Rp ${sub.toLocaleString('id-ID')}</div>
+        `;
+        fragment.appendChild(div);
+    });
+    
+    list.innerHTML = '';
+    list.appendChild(fragment);
+    
+    document.getElementById('cart-total').innerText = "Rp " + total.toLocaleString('id-ID');
+    window.totalPrice = total; 
+    updateKembalian();
+    
+    const badge = document.getElementById('badge-kasir');
+    badge.innerText = cart.reduce((sum, item) => sum + item.qty, 0);
+    badge.style.visibility = 'visible';
+}
 
-        function changeQty(id, delta) {
-            const item = cart.find(c => c.id === id);
-            if(!item) return;
-            item.qty += delta;
-            if(item.qty <= 0) cart = cart.filter(c => c.id !== id);
-            if(item.qty > (localData[id]?.stok || 0)) item.qty = localData[id].stok;
-            renderCart();
-        }
+function changeQty(id, delta) {
+    const item = cart.find(c => c.id === id);
+    if (!item) return;
+    
+    item.qty += delta;
+    if (item.qty <= 0) {
+        cart = cart.filter(c => c.id !== id);
+    } else {
+        const maxStok = localData[id]?.stok || 0;
+        if (item.qty > maxStok) item.qty = maxStok;
+    }
+    renderCart();
+}
 
-        async function bayarSekarang() {
-            if(!cart.length) return;
-            const pay = getRawValue(document.getElementById('cash-input').value);
-            if(pay < window.totalPrice) return toast('Uang pembayaran kurang!', 'warning');
-            
-            const now = getWITA();
-            const up = {};
-            cart.forEach(it => { up[`/obat/${it.id}/stok`] = localData[it.id].stok - it.qty; });
-            const transData = { tanggal: getISO(now), isoDate: getISO(now), bulan: getISO(now).substring(0,7), total: window.totalPrice, items: cart, timestamp: now.getTime() };
-            
-            await db.ref().update(up);
-            await db.ref('history').push(transData);
-            
-            toast('Transaksi Sukses!', 'success');
-            cart = []; renderCart(); 
-            document.getElementById('cash-input').value = ''; 
-        }
+async function bayarSekarang() {
+    if (!cart.length) return;
+    
+    const cashInput = document.getElementById('cash-input');
+    let pay = getRawValue(cashInput.value);
+    
+    if (pay === 0) {
+        pay = window.totalPrice;
+        cashInput.value = pay.toLocaleString('id-ID');
+        updateKembalian();
+    }
+    
+    if (pay < window.totalPrice) return toast('Uang pembayaran kurang!', 'warning');
+    
+    const now = getWITA();
+    const up = {};
+    
+    cart.forEach(it => { 
+        up[`/obat/${it.id}/stok`] = localData[it.id].stok - it.qty; 
+    });
+    
+    const transData = { 
+        tanggal: getISO(now), 
+        isoDate: getISO(now), 
+        bulan: getISO(now).substring(0,7), 
+        total: window.totalPrice, 
+        items: cart, 
+        timestamp: now.getTime() 
+    };
+    
+    try {
+        await Promise.all([
+            db.ref().update(up),
+            db.ref('history').push(transData)
+        ]);
+        
+        toast('Transaksi Sukses!', 'success');
+        cart = []; 
+        renderCart(); 
+        cashInput.value = ''; 
+        document.getElementById('change-text').innerText = "Rp 0";
+    } catch (err) {
+        console.error(err);
+        toast('Gagal memproses database!', 'error');
+    }
+}
 
         function loadNeraca() {
             const filter = document.getElementById('neraca-filter-bulan').value || getISO().substring(0,7);
@@ -642,7 +1093,6 @@ loadObatRealtime();
             document.getElementById('neraca-laba-bersih').innerText = "Rp " + (tj - tk).toLocaleString();
         }
 
-        // --- HELPERS ---
         function getFarmasiStyle(k) {
             if(k === 'KERAS') return {css:'gol-keras', txt:'KERAS'};
             if(k === 'ANALGESIK') return {css:'gol-bebas-terbatas', txt:'BIRU'};
@@ -655,13 +1105,14 @@ loadObatRealtime();
             document.querySelectorAll('.tab-item').forEach(b => b.classList.toggle('active', (cat === 'ALL' && b.innerText.includes('SEMUA')) || b.innerText.includes(cat)));
             filterCari();
         }
-        function filterCari() {
-            const val = document.getElementById('search-input').value.toLowerCase();
-            document.querySelectorAll('.prod-item').forEach(card => {
-                const matchCat = (currentCat === 'ALL' || card.getAttribute('data-category') === currentCat);
-                card.style.display = (matchCat && card.getAttribute('data-name').includes(val)) ? 'flex' : 'none';
-            });
-        }
+      function filterCari() {
+    const val = document.getElementById('search-input').value.toLowerCase();
+    document.querySelectorAll('.prod-item').forEach(card => {
+        const matchCat = (currentCat === 'ALL' || card.getAttribute('data-category') === currentCat);
+        card.style.display = (matchCat && card.getAttribute('data-name').includes(val)) ? 'flex' : 'none';
+    });
+}
+        
         function globalSearch(v) { if(v.length > 0 && currentCat !== "ALL") filterKategori('ALL'); filterCari(); }
         
         function updateKembalian() {
@@ -682,7 +1133,6 @@ loadObatRealtime();
     const selectedDate = document.getElementById('filter-hari').value;
     let totalHari = 0;
     
-    // Hitung total pendapatan
     Object.values(dataHistoryGlobal).forEach(d => { 
         if(d.isoDate === selectedDate) {
             totalHari += d.total || 0;
@@ -690,8 +1140,6 @@ loadObatRealtime();
     }); 
     
     document.getElementById('stat-hari-val').innerText = "Rp " + totalHari.toLocaleString('id-ID'); 
-
-    // === BAGIAN BARU: Update tabel rincian sesuai tanggal ===
     renderTabelHistoryByDate(selectedDate);
 }
         function updateLaporanBulanan() { 
@@ -699,45 +1147,28 @@ loadObatRealtime();
             Object.values(dataHistoryGlobal).forEach(d => { if(d.bulan === v) t += d.total; }); 
             document.getElementById('stat-bulan-val').innerText = "Rp " + t.toLocaleString(); 
         }
-        function renderTabelHistory() {
-            const tr = document.getElementById('tabel-history-raw'); tr.innerHTML = '';
-            Object.values(dataHistoryGlobal).sort((a,b) => b.timestamp - a.timestamp).slice(0,10).forEach(d => {
-                tr.innerHTML += `<tr class="hover:bg-slate-50"><td class="p-6 text-slate-400 font-medium">${d.tanggal}</td><td class="p-6 truncate max-w-xs">${d.items.map(i => i.nama).join(', ')}</td><td class="p-6 text-right font-black text-blue-600">Rp ${d.total.toLocaleString()}</td></tr>`;
-            });
-        }
 
-        // Render tabel history sesuai tanggal yang dipilih
 function renderTabelHistoryByDate(selectedDate) {
     const tbody = document.getElementById('tabel-history-raw');
     if (!tbody) return;
-
     tbody.innerHTML = '';
 
-    // Ambil semua transaksi, filter sesuai tanggal, lalu urutkan terbaru ke lama
     const filteredTransactions = Object.values(dataHistoryGlobal)
         .filter(d => d.isoDate === selectedDate)
-        .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));  // terbaru di atas
+        .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
     if (filteredTransactions.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="3" class="p-8 text-center text-slate-400 font-medium">
-                    Tidak ada transaksi pada tanggal ini
-                </td>
-            </tr>`;
+        tbody.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-slate-400 font-medium">Tidak ada transaksi pada tanggal ini</td></tr>`;
         return;
     }
 
     filteredTransactions.forEach(d => {
         const itemsList = d.items ? d.items.map(i => i.nama).join(', ') : '-';
-        
         tbody.innerHTML += `
             <tr class="hover:bg-slate-50 transition-colors">
-                <td class="p-6 text-slate-400 font-medium">${d.tanggal || '-'}</td>
-                <td class="p-6 truncate max-w-xs text-slate-700">${itemsList}</td>
-                <td class="p-6 text-right font-black text-blue-600">
-                    Rp ${d.total ? d.total.toLocaleString('id-ID') : '0'}
-                </td>
+                <td class="p-4 md:p-6 text-slate-400 font-medium">${d.tanggal || '-'}</td>
+                <td class="p-4 md:p-6 truncate max-w-xs text-slate-700">${itemsList}</td>
+                <td class="p-4 md:p-6 text-right font-black text-blue-600">Rp ${d.total ? d.total.toLocaleString('id-ID') : '0'}</td>
             </tr>`;
     });
 }
@@ -756,10 +1187,100 @@ function renderTabelHistoryByDate(selectedDate) {
             const res = await Swal.fire({ title: 'Hapus?', icon: 'warning', showCancelButton: true });
             if(res.isConfirmed) { await db.ref('pengeluaran/'+k).remove(); toast('Dihapus', 'success'); }
         }
+
+const healthQuotes = [
+    "Kesehatan bukanlah kemewahan, melainkan modal utama kehidupan.",
+    "Jangan lupa ingatkan pasien cek tanggal kedaluwarsa obat.",
+    "Tubuh sehat diawali dari pikiran yang bersih dan bahagia.",
+    "Mencegah jauh lebih baik dan murah daripada mengobati.",
+    "Pastikan dosis obat yang diberikan sudah sesuai resep dokter.",
+    "Senyum ramah hari ini adalah obat terbaik untuk para pasien.",
+    "Kesehatan yang baik adalah hasil dari konsistensi kecil setiap hari.",
+    "Minum air putih yang cukup menjaga fokus kerja kasir tetap prima.",
+    "Teliti sebelum menyerahkan obat demi keselamatan pasien.",
+    "Istirahat sejenak jika lelah, jaga stamina pelayanan tetap TOP!",
+    "Awali hari dengan semangat melayani sepenuh hati.",
+    "Setiap resep obat adalah amanah yang harus diperiksa teliti.",
+    "Lingkungan apotek yang bersih mencerminkan kualitas kesehatan.",
+    "Kesehatan tidak dinilai sampai penyakit itu datang menghampiri.",
+    "Ingatkan pasien untuk meminum antibiotik sampai habis.",
+    "Pelayanan yang cepat dan tepat adalah kunci kepuasan pelanggan.",
+    "Satu apel sehari bisa menjauhkan Anda dari antrean dokter.",
+    "Kesehatan adalah investasi terbaik untuk masa depan Anda.",
+    "Selalu jaga jarak pandang komputer agar mata tidak cepat lelah.",
+    "Periksa ulang jumlah uang kembalian sebelum diserahkan.",
+    "Senyum, salam, dan sapa buat suasana apotek semakin nyaman.",
+    "Apotek yang andal berawal dari manajemen inventaris yang rapi.",
+    "Jangan menunda minum obat jika ingin lekas pulih.",
+    "Olahraga teratur walau hanya jalan kaki 15 menit sehari.",
+    "Pikiran yang tenang adalah obat penawar untuk segala stres.",
+    "Pastikan stok obat fast-moving selalu terpantau aman.",
+    "Kesehatan fisik terjaga, produktivitas kerja pun meningkat.",
+    "Edukasi pasien cara penyimpanan obat yang benar di rumah.",
+    "Selalu double-check nomor batch saat input data inventaris.",
+    "Kesehatan yang prima membebaskan kita meraih mimpi.",
+    "Tidur yang cukup adalah pemulihan alami terbaik bagi tubuh.",
+    "Kebersihan tangan adalah langkah awal mencegah infeksi kuman.",
+    "Berikan informasi efek samping obat secara jelas dan bijak.",
+    "Ramah dalam pelayanan, profesional dalam tindakan.",
+    "Fokus penuh saat melayani transaksi kasir yang padat.",
+    "Kesehatan tidak bisa dibeli, tapi bisa dijaga dari sekarang.",
+    "Kurangi konsumsi gula berlebih demi kesehatan jangka panjang.",
+    "Suasana kerja yang harmonis bikin pelayanan makin maksimal.",
+    "Jangan lupa berikan struk belanja kepada setiap pembeli.",
+    "Jaga kebersihan etalase agar obat terhindar dari debu.",
+    "Melayani dengan sabar mendatangkan keberkahan melimpah.",
+    "Obat menyembuhkan fisik, kenyamanan pelayanan menyembuhkan hati.",
+    "Selalu sinkronkan data penjualan sebelum menutup shift kasir.",
+    "Kesehatan adalah mahkota yang hanya dilihat oleh orang sakit.",
+    "Pola makan seimbang, kunci tubuh kebal terhadap penyakit.",
+    "Cek berkala suhu kulkas penyimpanan vaksin dan sirup.",
+    "Keamanan data transaksi adalah prioritas utama sistem POS kita.",
+    "Tetap tenang dan solutif saat menghadapi keluhan pelanggan.",
+    "Sehat itu sederhana: cukupi air, cukupi nutrisi, cukupi tidur.",
+    "Terima kasih telah bekerja keras menjaga kesehatan masyarakat!"
+];
+
+let dynamicQuotesQueue = [];
+
+function shuffleQuotes() {
+    dynamicQuotesQueue = [...healthQuotes];
+    for (let i = dynamicQuotesQueue.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [dynamicQuotesQueue[i], dynamicQuotesQueue[j]] = [dynamicQuotesQueue[j], dynamicQuotesQueue[i]];
+    }
+}
+
+function initHealthQuote() {
+    const quoteEl = document.getElementById('health-quote');
+    if (!quoteEl) return;
+
+    shuffleQuotes();
+    let currentQuote = dynamicQuotesQueue.pop();
+    quoteEl.innerText = currentQuote;
+
+    setInterval(() => {
+        quoteEl.classList.add('fade-out');
+        setTimeout(() => {
+            if (dynamicQuotesQueue.length === 0) {
+                shuffleQuotes();
+                if (dynamicQuotesQueue[dynamicQuotesQueue.length - 1] === currentQuote) {
+                    dynamicQuotesQueue.unshift(dynamicQuotesQueue.pop());
+                }
+            }
+            currentQuote = dynamicQuotesQueue.pop();
+            quoteEl.innerText = currentQuote;
+            quoteEl.classList.remove('fade-out');
+        }, 600);
+    }, 5000);
+}
+
+document.addEventListener("DOMContentLoaded", initHealthQuote);
     </script>
 <button id="btn-to-top" onclick="scrollToTop()" 
     class="fixed bottom-24 right-6 md:right-[32%] z-[100] bg-amber-400 text-slate-900 w-12 h-12 rounded-2xl shadow-2xl flex items-center justify-center transition-all duration-300 translate-y-20 opacity-0 hover:bg-amber-500 active:scale-90">
     <i class="fas fa-arrow-up text-xl"></i>
 </button>
+
 </body>
 </html>
