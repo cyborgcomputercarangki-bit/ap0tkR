@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
        /* =========================
    FONT & BODY
@@ -194,14 +195,14 @@ body {
     position: absolute;
     top: 8px;
     right: 8px;
-    background: rgba(255,255,255,.9);
-    color: #1e293b;
-    padding: 3px 8px;
+    background: #2563eb; /* Biru terang khas aplikasi modern */
+    color: #ffffff; /* Tulisan putih */
+    padding: 5px 10px;
     border-radius: 8px;
-    font-size: 8px;
-    font-weight: 800;
-    border: 1px solid #e2e8f0;
+    font-size: 9px;
+    font-weight: 900;
     z-index: 10;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
 }
 
 /* =========================
@@ -407,79 +408,152 @@ body {
 
     <!-- ==================== LAPORAN ==================== -->
     <section id="section-laporan" class="hidden space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div class="luxury-card p-5 border-l-8 border-blue-600 shadow-lg">
-                <div class="flex justify-between items-center mb-2">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pendapatan Hari Ini</p>
-                    <input type="date" id="filter-hari" onchange="updateLaporanHarian()" class="text-[10px] font-bold bg-slate-50 p-1 rounded">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        
+        <div class="luxury-card p-5 bg-gradient-to-br from-blue-600 to-indigo-700 text-white border-none relative overflow-hidden shadow-lg shadow-blue-600/20 rounded-2xl transition-all duration-300 hover:scale-[1.01]">
+            <div class="absolute -right-3 -bottom-3 text-white/10 text-6xl pointer-events-none transform -rotate-12"><i class="fas fa-calendar-day"></i></div>
+            
+            <div class="flex justify-between items-center mb-3 relative z-10">
+                <div>
+                    <p class="text-[9px] font-black opacity-80 uppercase tracking-widest">Pendapatan Hari Ini</p>
+                    <span class="inline-block mt-1 px-1.5 py-0.5 text-[8px] font-bold bg-white/20 rounded"><i class="fas fa-chart-line mr-1"></i>Harian</span>
                 </div>
-                <h3 id="stat-hari-val" class="text-2xl md:text-3xl font-black text-blue-600">Rp 0</h3>
+                <div class="relative">
+                    <input type="date" id="filter-hari" onchange="updateLaporanHarian()" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white placeholder-white/60 text-[10px] font-black px-2 py-1 rounded-xl focus:outline-none focus:ring-1 focus:ring-white transition-all cursor-pointer">
+                </div>
             </div>
-            <div class="luxury-card p-5 border-l-8 border-slate-900 shadow-lg">
-                <div class="flex justify-between items-center mb-2">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Bulan Ini</p>
-                    <input type="month" id="filter-bulan" onchange="updateLaporanBulanan()" class="text-[10px] font-bold bg-slate-50 p-1 rounded">
+            <h3 id="stat-hari-val" class="text-2xl md:text-3xl font-black tracking-tight text-white mt-1">Rp 0</h3>
+        </div>
+
+        <div class="luxury-card p-5 bg-gradient-to-br from-slate-800 to-slate-950 text-white border-none relative overflow-hidden shadow-lg shadow-slate-900/30 rounded-2xl transition-all duration-300 hover:scale-[1.01]">
+            <div class="absolute -right-3 -bottom-3 text-white/10 text-6xl pointer-events-none transform -rotate-12"><i class="fas fa-chart-bar"></i></div>
+            
+            <div class="flex justify-between items-center mb-3 relative z-10">
+                <div>
+                    <p class="text-[9px] font-black opacity-80 uppercase tracking-widest">Total Bulan Ini</p>
+                    <span class="inline-block mt-1 px-1.5 py-0.5 text-[8px] font-bold bg-white/20 rounded text-amber-400"><i class="fas fa-coins mr-1"></i>Akumulasi</span>
                 </div>
-                <h3 id="stat-bulan-val" class="text-2xl md:text-3xl font-black text-slate-900">Rp 0</h3>
+                <div class="relative">
+                    <input type="month" id="filter-bulan" onchange="updateLaporanBulanan()" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white placeholder-white/60 text-[10px] font-black px-2 py-1 rounded-xl focus:outline-none focus:ring-1 focus:ring-white transition-all cursor-pointer">
+                </div>
+            </div>
+            <h3 id="stat-bulan-val" class="text-2xl md:text-3xl font-black tracking-tight text-amber-400 mt-1">Rp 0</h3>
+        </div>
+
+    </div>
+       <div class="p-5 bg-white shadow-xl rounded-2xl border border-slate-100">
+    <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+        <div>
+            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider">Rincian Transaksi Terakhir</h3>
+            <p class="text-[10px] text-slate-400 mt-0.5 font-bold">Memantau aliran kas masuk dari kasir secara real-time</p>
+        </div>
+        <div class="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
+            <i class="fas fa-history text-sm"></i>
+        </div>
+    </div>
+
+    <div id="tabel-history-raw" class="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+        </div>
+</div>
+    </section>
+
+   <section id="section-neraca" class="hidden space-y-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+        <div>
+            <h2 class="text-base md:text-lg font-black text-slate-800 uppercase tracking-wide flex items-center gap-2">
+                <i class="fas fa-chart-pie text-amber-500"></i> Neraca Keuangan
+            </h2>
+            <p class="text-[10px] text-slate-400 font-bold mt-0.5">Analisis riwayat perputaran arus kas apotek secara real-time</p>
+        </div>
+        <div class="relative w-full sm:w-auto">
+            <span class="absolute left-3 top-2.5 text-slate-400 text-xs"><i class="fas fa-calendar-alt"></i></span>
+            <input type="month" id="neraca-filter-bulan" onchange="loadNeraca()" class="w-full sm:w-auto bg-slate-50 border border-slate-200 pl-8 pr-3 py-1.5 rounded-xl font-black text-xs text-slate-700 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all">
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="luxury-card p-5 bg-gradient-to-br from-blue-600 to-indigo-700 text-white border-none relative overflow-hidden shadow-lg shadow-blue-600/20 rounded-2xl transition-all duration-300 hover:scale-[1.02]">
+            <div class="absolute -right-3 -bottom-3 text-white/10 text-6xl pointer-events-none transform -rotate-12"><i class="fas fa-wallet"></i></div>
+            <p class="text-[9px] font-black opacity-80 uppercase tracking-widest">Total Penjualan (Omset)</p>
+            <h3 id="neraca-total-jual" class="text-xl md:text-2xl font-black mt-1 tracking-tight">Rp 0</h3>
+            <span class="inline-block mt-2 px-2 py-0.5 text-[8px] font-bold bg-white/20 rounded-md"><i class="fas fa-arrow-trend-up mr-1"></i>Pemasukan</span>
+        </div>
+
+        <div class="luxury-card p-5 bg-gradient-to-br from-rose-500 to-red-600 text-white border-none relative overflow-hidden shadow-lg shadow-rose-500/20 rounded-2xl transition-all duration-300 hover:scale-[1.02]">
+            <div class="absolute -right-3 -bottom-3 text-white/10 text-6xl pointer-events-none transform -rotate-12"><i class="fas fa-shopping-basket"></i></div>
+            <p class="text-[9px] font-black opacity-80 uppercase tracking-widest">Total Pengeluaran (Biaya)</p>
+            <h3 id="neraca-total-keluar" class="text-xl md:text-2xl font-black mt-1 tracking-tight">Rp 0</h3>
+            <span class="inline-block mt-2 px-2 py-0.5 text-[8px] font-bold bg-white/20 rounded-md"><i class="fas fa-arrow-trend-down mr-1"></i>Operasional</span>
+        </div>
+
+        <div class="luxury-card p-5 bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-none relative overflow-hidden shadow-lg shadow-emerald-500/20 rounded-2xl transition-all duration-300 hover:scale-[1.02]">
+            <div class="absolute -right-3 -bottom-3 text-white/10 text-6xl pointer-events-none transform -rotate-12"><i class="fas fa-coins"></i></div>
+            <p class="text-[9px] font-black opacity-80 uppercase tracking-widest">Laba Bersih (Profit)</p>
+            <h3 id="neraca-laba-bersih" class="text-xl md:text-2xl font-black mt-1 tracking-tight">Rp 0</h3>
+            <span class="inline-block mt-2 px-2 py-0.5 text-[8px] font-bold bg-white/20 rounded-md"><i class="fas fa-calculator mr-1"></i>Sisa Keuntungan Margin</span>
+        </div>
+    </div>
+
+    <div class="p-5 bg-white shadow-md border border-slate-100 rounded-2xl">
+        <div class="flex justify-between items-center pb-4 mb-4 border-b border-slate-100">
+            <div>
+                <h3 class="font-black text-slate-800 uppercase text-[10px] tracking-wider">Grafik Arus Kas Bulanan</h3>
+                <p class="text-[9px] text-slate-400 font-bold">Grafik komparasi harian pemasukan versus pengeluaran kasir</p>
+            </div>
+            <span class="px-2 py-0.5 text-[8px] font-black rounded bg-amber-50 text-amber-600 border border-amber-200">LIVE GRAPH</span>
+        </div>
+        <div class="relative w-full h-[220px]">
+            <canvas id="neracaChart"></canvas>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1 luxury-card p-5 h-fit bg-white border border-slate-100 rounded-2xl shadow-sm">
+            <div class="flex items-center gap-2 pb-3 mb-4 border-b border-slate-50">
+                <div class="w-7 h-7 rounded-lg bg-slate-900 text-amber-400 flex items-center justify-center text-xs shadow-md"><i class="fas fa-plus"></i></div>
+                <h3 class="font-black text-slate-800 uppercase text-[10px] tracking-wide">Input Pengeluaran Baru</h3>
+            </div>
+            <div class="space-y-3.5">
+                <div>
+                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-wider block mb-1">Nama Pengeluaran / Keterangan</label>
+                    <input type="text" id="exp-ket" placeholder="Contoh: Bayar Listrik / Gaji Karyawan" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xs focus:outline-none focus:border-amber-400 focus:bg-white transition-all">
+                </div>
+                <div>
+                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-wider block mb-1">Nominal Biaya (Rp)</label>
+                    <input type="text" id="exp-nom" onkeyup="formatCurrencyInput(this)" placeholder="0" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-xs text-rose-600 focus:outline-none focus:border-amber-400 focus:bg-white transition-all">
+                </div>
+                <div>
+                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-wider block mb-1">Tanggal Transaksi</label>
+                    <input type="date" id="exp-tgl" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xs text-slate-600 focus:outline-none focus:border-amber-400 focus:bg-white transition-all">
+                </div>
+                <button onclick="simpanPengeluaran()" class="w-full bg-slate-900 text-amber-400 hover:text-amber-300 font-black py-3 rounded-xl uppercase text-[10px] tracking-wider transition-all duration-150 hover:shadow-lg hover:shadow-slate-900/20 active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fas fa-save"></i> Simpan Pengeluaran
+                </button>
             </div>
         </div>
-        <div class="luxury-card overflow-hidden shadow-xl">
-            <div class="bg-slate-50 p-4 border-b">
-                <h3 class="font-black text-slate-800 text-[10px] uppercase">Rincian Transaksi Terakhir</h3>
+
+        <div class="lg:col-span-2 luxury-card overflow-hidden bg-white border border-slate-100 rounded-2xl shadow-sm">
+            <div class="p-4 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="font-black text-slate-800 uppercase text-[10px] tracking-wide">Daftar Biaya Operasional</h3>
+                <span class="px-2 py-0.5 text-[8px] font-black rounded bg-slate-900 text-white">LOG</span>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
-                    <thead class="bg-white text-[10px] font-black text-slate-300 uppercase border-b">
-                        <tr><th class="p-4 md:p-6">Waktu</th><th class="p-4 md:p-6">Items</th><th class="p-4 md:p-6 text-right">Total</th></tr>
-                    </thead>
-                    <tbody id="tabel-history-raw" class="divide-y text-xs font-bold text-slate-600"></tbody>
+                  <thead class="bg-slate-50 text-[9px] font-black text-slate-400 uppercase border-b border-slate-100">
+    <tr>
+        <th class="p-4 w-32">Waktu / Tanggal</th> <!-- Lebar kolom ditambah sedikit -->
+        <th class="p-4">Keterangan Pengeluaran</th>
+        <th class="p-4 text-right w-36">Nominal Beban</th>
+        <th class="p-4 text-center w-20">Aksi</th>
+    </tr>
+</thead>
+                    <tbody id="tabel-pengeluaran" class="divide-y divide-slate-100 text-xs font-bold text-slate-600 bg-white">
+                        </tbody>
                 </table>
             </div>
         </div>
-    </section>
-
-    <!-- ==================== NERACA ==================== -->
-    <section id="section-neraca" class="hidden space-y-6">
-        <div class="flex justify-between items-center">
-            <h2 class="text-lg md:text-xl font-black text-slate-800 uppercase">Neraca Keuangan</h2>
-            <input type="month" id="neraca-filter-bulan" onchange="loadNeraca()" class="bg-white border p-2 rounded-xl font-bold text-xs">
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="luxury-card p-5 bg-blue-600 text-white border-none">
-                <p class="text-[9px] font-black opacity-70 uppercase tracking-widest">Total Penjualan</p>
-                <h3 id="neraca-total-jual" class="text-xl md:text-2xl font-black">Rp 0</h3>
-            </div>
-            <div class="luxury-card p-5 bg-red-500 text-white border-none">
-                <p class="text-[9px] font-black opacity-70 uppercase tracking-widest">Total Pengeluaran</p>
-                <h3 id="neraca-total-keluar" class="text-xl md:text-2xl font-black">Rp 0</h3>
-            </div>
-            <div class="luxury-card p-5 bg-emerald-500 text-white border-none">
-                <p class="text-[9px] font-black opacity-70 uppercase tracking-widest">Laba Bersih</p>
-                <h3 id="neraca-laba-bersih" class="text-xl md:text-2xl font-black">Rp 0</h3>
-            </div>
-        </div>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-1 luxury-card p-5 h-fit">
-                <h3 class="font-black text-slate-800 uppercase text-[10px] mb-4">Input Pengeluaran</h3>
-                <div class="space-y-3">
-                    <input type="text" id="exp-ket" placeholder="Keterangan" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm">
-                    <input type="text" id="exp-nom" onkeyup="formatCurrencyInput(this)" placeholder="Nominal" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm">
-                    <input type="date" id="exp-tgl" class="w-full p-3 bg-slate-50 border rounded-xl font-bold text-sm">
-                    <button onclick="simpanPengeluaran()" class="w-full bg-slate-900 text-white font-black py-3 rounded-xl uppercase text-[10px]">Simpan</button>
-                </div>
-            </div>
-            <div class="lg:col-span-2 luxury-card overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-50 text-[9px] font-black text-slate-400 uppercase border-b">
-                            <tr><th class="p-4">Tgl</th><th class="p-4">Ket</th><th class="p-4 text-right">Nominal</th><th class="p-4 text-center">Aksi</th></tr>
-                        </thead>
-                        <tbody id="tabel-pengeluaran" class="divide-y text-xs font-bold text-slate-600"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </section>
+    </div>
+</section>
 
     <!-- ==================== ADMIN ==================== -->
     <section id="section-admin" class="hidden space-y-6">
@@ -814,7 +888,7 @@ loadObatRealtime();
                 card.innerHTML = `
                     <div class="image-box">
                         ${imageContent}
-                        <span class="badge-exp">${item.expired || 'No Exp'}</span>
+                       <span class="badge-exp">${formatIndoDate(item.expired)}</span>
                         <span class="badge-farmasi ${badge.css}">${badge.txt}</span>
                         <span class="badge-stok-circle ${stokColor}">${item.stok}</span>
                     </div>
@@ -851,7 +925,7 @@ loadObatRealtime();
         const kat    = item.kategori || '?';
         const stok   = Number(item.stok)   || 0;
         const harga  = Number(item.harga_biji) || 0;
-        const exp    = item.expired || '-';
+       const exp    = formatIndoDate(item.expired);
         const batch  = item.no_batch || '-';
         
         const row = document.createElement('tr');
@@ -1075,23 +1149,142 @@ async function bayarSekarang() {
     }
 }
 
-        function loadNeraca() {
-            const filter = document.getElementById('neraca-filter-bulan').value || getISO().substring(0,7);
-            document.getElementById('neraca-filter-bulan').value = filter;
-            let tj = 0; let tk = 0;
-            Object.values(dataHistoryGlobal).forEach(d => { if(d.bulan === filter) tj += d.total; });
-            const tb = document.getElementById('tabel-pengeluaran'); tb.innerHTML = '';
-            Object.keys(dataPengeluaranGlobal).forEach(k => {
-                const p = dataPengeluaranGlobal[k];
-                if(p.bulan === filter) {
-                    tk += p.nominal;
-                    tb.innerHTML += `<tr class="divide-y"><td class="p-4">${p.tanggal}</td><td class="p-4 uppercase">${p.keterangan}</td><td class="p-4 text-right">Rp ${p.nominal.toLocaleString()}</td><td class="p-4 text-center"><button onclick="hapusPengeluaran('${k}')" class="text-red-500"><i class="fas fa-trash"></i></button></td></tr>`;
+       // Sediakan variabel di luar fungsi untuk menyimpan instance grafik agar tidak eror/tumpang tindih saat ganti bulan
+// Taruh variabel chart di luar fungsi agar saat ganti bulan grafik tidak menumpuk/eror
+let neracaChartInstance = null;
+
+function loadNeraca() {
+    const filter = document.getElementById('neraca-filter-bulan').value || getISO().substring(0,7);
+    document.getElementById('neraca-filter-bulan').value = filter;
+    
+    let tj = 0; // Total penjualan
+    let tk = 0; // Total pengeluaran
+    const harianData = {};
+
+    // 1. Hitung Penjualan dari Laporan Kasir
+    Object.values(dataHistoryGlobal).forEach(d => { 
+        if(d.bulan === filter) {
+            tj += d.total; 
+            const tglHari = d.isoDate ? d.isoDate.substring(8, 10) : '01';
+            if (!harianData[tglHari]) harianData[tglHari] = { masuk: 0, keluar: 0 };
+            harianData[tglHari].masuk += d.total;
+        } 
+    });
+
+    // 2. Kosongkan dan Isi Tabel Pengeluaran Operasional
+    const tb = document.getElementById('tabel-pengeluaran'); 
+    if (tb) {
+        tb.innerHTML = '';
+        Object.keys(dataPengeluaranGlobal).forEach(k => {
+            const p = dataPengeluaranGlobal[k];
+            if(p.bulan === filter) {
+                tk += p.nominal;
+                
+                // Ambil tanggal untuk kebutuhan grafik harian
+                let tglHari = '01';
+                if (p.tanggal) {
+                    const tglSaja = p.tanggal.split(' ')[0];
+                    if (tglSaja.includes('-')) tglHari = tglSaja.split('-')[2];
                 }
-            });
-            document.getElementById('neraca-total-jual').innerText = "Rp " + tj.toLocaleString();
-            document.getElementById('neraca-total-keluar').innerText = "Rp " + tk.toLocaleString();
-            document.getElementById('neraca-laba-bersih').innerText = "Rp " + (tj - tk).toLocaleString();
+                if (!harianData[tglHari]) harianData[tglHari] = { masuk: 0, keluar: 0 };
+                harianData[tglHari].keluar += p.nominal;
+
+                // --- PROSES PARSING TANGGAL & JAM AGAR PASTI MUNCUL ---
+                let tglIndo = '-';
+                let jamIndo = '--:-- WITA'; // Default jika data lama tidak ada jamnya
+
+                if (p.tanggal) {
+                    if (p.tanggal.includes(' ')) {
+                        // Jika format data baru lengkap: "YYYY-MM-DD HH:mm"
+                        const partsSpasi = p.tanggal.split(' ');
+                        const tglMentah = partsSpasi[0];
+                        jamIndo = partsSpasi[1] + " WITA";
+
+                        if (tglMentah.includes('-')) {
+                            const pts = tglMentah.split('-');
+                            tglIndo = `${pts[2]}-${pts[1]}-${pts[0]}`;
+                        }
+                    } else if (p.tanggal.includes('-')) {
+                        // Jika format data lama (hanya tanggal saja): "YYYY-MM-DD"
+                        const pts = p.tanggal.split('-');
+                        tglIndo = `${pts[2]}-${pts[1]}-${pts[0]}`;
+                    } else {
+                        tglIndo = p.tanggal;
+                    }
+                }
+                // -----------------------------------------------------
+
+                // Suntik baris tabel pengeluaran dengan padding longgar (p-4)
+                tb.innerHTML += `
+                    <tr class="border-b border-slate-100 hover:bg-slate-50/80 transition-colors">
+                        <td class="p-4 text-left whitespace-nowrap">
+                            <div class="text-xs font-black text-slate-700">${tglIndo}</div>
+                            <div class="text-[9px] text-slate-400 font-bold mt-0.5"><i class="far fa-clock mr-1"></i>${jamIndo}</div>
+                        </td>
+                        <td class="p-4 text-xs font-black text-slate-600 uppercase tracking-wide">
+                            ${p.keterangan}
+                        </td>
+                        <td class="p-4 text-xs font-black text-right text-rose-600 tracking-wide">
+                            - Rp ${p.nominal.toLocaleString('id-ID')}
+                        </td>
+                        <td class="p-4 text-center">
+                            <button onclick="hapusPengeluaran('${k}')" class="w-7 h-7 inline-flex items-center justify-center rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-600 transition-colors shadow-sm">
+                                <i class="fas fa-trash text-xs"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+            }
+        });
+    }
+
+    // 3. Update Ringkasan Angka Neraca (Laba Bersih Tetap Putih)
+    const labaBersih = tj - tk;
+    document.getElementById('neraca-total-jual').innerText = "Rp " + tj.toLocaleString('id-ID');
+    document.getElementById('neraca-total-keluar').innerText = "Rp " + tk.toLocaleString('id-ID');
+    
+    const labaElement = document.getElementById('neraca-laba-bersih');
+    if (labaElement) {
+        labaElement.innerText = "Rp " + labaBersih.toLocaleString('id-ID');
+        if (labaBersih < 0) {
+            labaElement.className = "text-xl md:text-2xl font-black mt-1 tracking-tight text-rose-200 transition-colors duration-200";
+        } else {
+            labaElement.className = "text-xl md:text-2xl font-black mt-1 tracking-tight text-white transition-colors duration-200";
         }
+    }
+
+    // 4. Update Grafik Chart.js
+    const ctx = document.getElementById('neracaChart');
+    if (ctx && typeof Chart !== 'undefined') {
+        const urutanHari = Object.keys(harianData).sort();
+        const datasetMasuk = urutanHari.map(h => harianData[h].masuk);
+        const datasetKeluar = urutanHari.map(h => harianData[h].keluar);
+        const labelHari = urutanHari.map(h => `Tgl ${h}`);
+
+        if (neracaChartInstance) {
+            neracaChartInstance.destroy();
+        }
+
+        neracaChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labelHari,
+                datasets: [
+                    { label: 'Pemasukan (Rp)', data: datasetMasuk, backgroundColor: 'rgba(16, 185, 129, 0.85)', borderRadius: 4 },
+                    { label: 'Pengeluaran (Rp)', data: datasetKeluar, backgroundColor: 'rgba(244, 63, 94, 0.85)', borderRadius: 4 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 10 } } } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { font: { family: 'Plus Jakarta Sans', size: 9, weight: '600' }, callback: function(val) { return 'Rp ' + val.toLocaleString('id-ID'); } }, grid: { color: '#f1f5f9' } },
+                    x: { ticks: { font: { family: 'Plus Jakarta Sans', size: 9, weight: '700' } }, grid: { display: false } }
+                }
+            }
+        });
+    }
+}
 
         function getFarmasiStyle(k) {
             if(k === 'KERAS') return {css:'gol-keras', txt:'KERAS'};
@@ -1149,40 +1342,95 @@ async function bayarSekarang() {
         }
 
 function renderTabelHistoryByDate(selectedDate) {
-    const tbody = document.getElementById('tabel-history-raw');
-    if (!tbody) return;
-    tbody.innerHTML = '';
+    const container = document.getElementById('tabel-history-raw');
+    if (!container) return;
+    container.innerHTML = '';
 
     const filteredTransactions = Object.values(dataHistoryGlobal)
         .filter(d => d.isoDate === selectedDate)
         .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
     if (filteredTransactions.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-slate-400 font-medium">Tidak ada transaksi pada tanggal ini</td></tr>`;
+        container.innerHTML = `<div class="p-8 text-center text-slate-400 font-bold text-xs uppercase tracking-wider bg-slate-50 rounded-xl border border-dashed">Tidak ada transaksi hari ini</div>`;
         return;
     }
 
     filteredTransactions.forEach(d => {
-        const itemsList = d.items ? d.items.map(i => i.nama).join(', ') : '-';
-        tbody.innerHTML += `
-            <tr class="hover:bg-slate-50 transition-colors">
-                <td class="p-4 md:p-6 text-slate-400 font-medium">${d.tanggal || '-'}</td>
-                <td class="p-4 md:p-6 truncate max-w-xs text-slate-700">${itemsList}</td>
-                <td class="p-4 md:p-6 text-right font-black text-blue-600">Rp ${d.total ? d.total.toLocaleString('id-ID') : '0'}</td>
-            </tr>`;
+        const itemsList = d.items ? d.items.map(i => `${i.nama} (${i.qty}x)`).join(', ') : '-';
+        
+        // --- PROSES KONVERSI TANGGAL KE DD-MM-YYYY ---
+        let tanggalIndo = d.tanggal || '-';
+        if (d.isoDate && d.isoDate.includes('-')) {
+            const parts = d.isoDate.split('-'); // Memecah YYYY-MM-DD
+            if (parts.length === 3) {
+                tanggalIndo = `${parts[2]}-${parts[1]}-${parts[0]}`; // Menyusun jadi DD-MM-YYYY
+            }
+        }
+        // ---------------------------------------------
+
+        container.innerHTML += `
+            <div class="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-xl hover:shadow-md hover:border-amber-300 transition-all duration-200">
+                <!-- Sisi Kiri: Ikon & Detail Obat -->
+                <div class="flex items-center space-x-3 min-w-0 flex-1">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <i class="fas fa-shopping-basket text-sm"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-black text-slate-800 uppercase truncate">${itemsList}</h4>
+                        <p class="text-[10px] text-slate-400 mt-0.5 font-bold"><i class="far fa-clock mr-1"></i>${tanggalIndo}</p>
+                    </div>
+                </div>
+
+                <!-- Sisi Kanan: Nominal Pembayaran -->
+                <div class="text-right ml-4 shrink-0">
+                    <span class="text-xs font-black text-emerald-600 tracking-wide">
+                        + Rp ${d.total ? d.total.toLocaleString('id-ID') : '0'}
+                    </span>
+                    <div class="mt-1 flex justify-end">
+    <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[8px] font-black uppercase rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200/60 shadow-sm">
+        <i class="fas fa-check-circle text-[9px]"></i> SUKSES
+    </span>
+</div>
+                </div>
+            </div>
+        `;
     });
 }
-        async function simpanPengeluaran() {
-            const ket = document.getElementById('exp-ket').value;
-            const nomStr = document.getElementById('exp-nom').value;
-            const nom = getRawValue(nomStr);
-            const tgl = document.getElementById('exp-tgl').value;
-            if(!ket || !nom || !tgl) return toast('Data belum lengkap', 'warning');
-            await db.ref('pengeluaran').push({ keterangan: ket, nominal: nom, tanggal: tgl, bulan: tgl.substring(0,7), timestamp: new Date(tgl).getTime() });
-            toast('Pengeluaran disimpan', 'success');
-            document.getElementById('exp-ket').value = '';
-            document.getElementById('exp-nom').value = '';
-        }
+       async function simpanPengeluaran() {
+    const ket = document.getElementById('exp-ket').value;
+    const nomStr = document.getElementById('exp-nom').value;
+    const nom = getRawValue(nomStr);
+    const tglInput = document.getElementById('exp-tgl').value; // Contoh hasil input HTML: "2026-05-24"
+    
+    if(!ket || !nom || !tglInput) return toast('Data belum lengkap', 'warning');
+    
+    // 1. AMBIL JAM DAN MENIT SAAT INI SECARA REAL-TIME
+    const waktuSekarang = getWITA ? getWITA() : new Date();
+    const jam = String(waktuSekarang.getHours()).padStart(2, '0');
+    const menit = String(waktuSekarang.getMinutes()).padStart(2, '0');
+    
+    // Gabungkan tanggal pilihan dengan jam menit saat ini untuk string tampilan
+    const tanggalDanJamLengkap = `${tglInput} ${jam}:${menit}`; // Hasil: "2026-05-24 22:45"
+    
+    // 2. TIMESTAMPS AMBIL DARI VALUE TANGGAL KALENDER (Biar sinkron dengan kodingan aslimu)
+    const hitungTimestamp = new Date(tglInput).getTime() || waktuSekarang.getTime();
+    
+    // 3. KIRIM KE FIREBASE DENGAN STRUKTUR AMAN
+    await db.ref('pengeluaran').push({ 
+        keterangan: ket, 
+        nominal: nom, 
+        tanggal: tanggalDanJamLengkap,   // String lengkap dibaca di tabel nanti
+        bulan: tglInput.substring(0,7),  // Tetap ambil format YYYY-MM untuk filter neraca bulanan
+        timestamp: hitungTimestamp       // Amankan konversi tanggal bawaan aslimu
+    });
+    
+    toast('Pengeluaran disimpan', 'success');
+    
+    // 4. RESET FORM INPUT
+    document.getElementById('exp-ket').value = '';
+    document.getElementById('exp-nom').value = '';
+    // Input tanggal sengaja tidak di-reset biar kalau mau input pengeluaran lain di hari yang sama tidak perlu klik kalender lagi
+}
         async function hapusPengeluaran(k) {
             const res = await Swal.fire({ title: 'Hapus?', icon: 'warning', showCancelButton: true });
             if(res.isConfirmed) { await db.ref('pengeluaran/'+k).remove(); toast('Dihapus', 'success'); }
@@ -1276,6 +1524,18 @@ function initHealthQuote() {
 }
 
 document.addEventListener("DOMContentLoaded", initHealthQuote);
+
+function formatIndoDate(dateStr) {
+    if (!dateStr || dateStr === '-') return 'No Exp';
+    // Cek apakah formatnya sudah YYYY-MM-DD (mengandung karakter '-')
+    if (dateStr.includes('-')) {
+        const parts = dateStr.split('-');
+        if (parts[0].length === 4) { // Jika bagian pertama adalah tahun (YYYY)
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+    }
+    return dateStr;
+}
     </script>
 <button id="btn-to-top" onclick="scrollToTop()" 
     class="fixed bottom-24 right-6 md:right-[32%] z-[100] bg-amber-400 text-slate-900 w-12 h-12 rounded-2xl shadow-2xl flex items-center justify-center transition-all duration-300 translate-y-20 opacity-0 hover:bg-amber-500 active:scale-90">
