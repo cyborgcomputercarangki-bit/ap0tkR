@@ -281,6 +281,41 @@ body {
     font-size: 1.2rem !important;
     letter-spacing: .3em !important;
 }
+
+/* =========================
+   STOCK HABIS (OUT OF STOCK)
+========================= */
+.product-card.out-of-stock {
+    opacity: 0.6;
+    filter: grayscale(0.8);
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.product-card.out-of-stock .image-box {
+    position: relative;
+}
+
+.product-card.out-of-stock .image-box::after {
+    content: "HABIS";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.65);
+    color: #fbbf24;
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    border-radius: 1.5rem 1.5rem 0 0;
+    backdrop-filter: blur(2px);
+}
+
+.product-card.out-of-stock .badge-stok-circle {
+    background: #64748b !important;
+}
     </style>
 </head>
 <body class="bg-slate-50">
@@ -866,48 +901,67 @@ loadObatRealtime();
 }
 
         function renderInitialGrid() {
-            const container = document.getElementById('grid-obat');
-            container.innerHTML = ''; 
-            Object.keys(localData).forEach(id => {
-                const item = localData[id];
-                const badge = getFarmasiStyle(item.kategori);
-                const stokColor = item.stok > 10 ? 'bg-green-500' : (item.stok > 4 ? 'bg-amber-500' : 'bg-red-500');
-                
-                const imageContent = item.gambar 
-                    ? `<img src="${item.gambar}" class="transition-transform duration-300 group-hover:scale-110">`
-                    : `<div class="logo-placeholder"><i class="fas fa-prescription-bottle-alt text-3xl opacity-30"></i></div>`;
-
-                const batchHTML = (item.no_batch && item.no_batch !== '-') 
-                    ? `<p class="text-[9px] text-amber-600 font-bold mb-1">Batch: ${item.no_batch}</p>` 
-                    : '';
-
-                const card = document.createElement('div');
-                card.className = "prod-item product-card luxury-card cursor-pointer group";
-                card.onclick = () => addToCart(id);
-                
-                card.innerHTML = `
-                    <div class="image-box">
-                        ${imageContent}
-                       <span class="badge-exp">${formatIndoDate(item.expired)}</span>
-                        <span class="badge-farmasi ${badge.css}">${badge.txt}</span>
-                        <span class="badge-stok-circle ${stokColor}">${item.stok}</span>
-                    </div>
-                    <div class="p-3 flex-1 flex flex-col justify-between">
-                        <div>
-                            <h3 class="font-bold text-[11px] uppercase truncate text-slate-800 mb-0.5">${item.nama}</h3>
-                            ${batchHTML}
-                        </div>
-                        <p class="text-blue-600 font-extrabold text-[12px] md:text-[13px] mt-1.5">Rp ${(item.harga_biji || 0).toLocaleString('id-ID')}</p>
-                    </div>
-                `;
-                
-                card.setAttribute('data-category', item.kategori || 'LAINNYA');
-                const batchSearch = item.no_batch ? ' ' + item.no_batch.toLowerCase() : '';
-                card.setAttribute('data-name', (item.nama || '').toLowerCase() + batchSearch);
-                container.appendChild(card);
-            });
-            filterCari();
+    const container = document.getElementById('grid-obat');
+    container.innerHTML = ''; 
+    Object.keys(localData).forEach(id => {
+        const item = localData[id];
+        const badge = getFarmasiStyle(item.kategori);
+        const stok = item.stok || 0;
+        const isOutOfStock = stok <= 0;
+        
+        // Warna stok badge
+        let stokColor = 'bg-green-500';
+        if (isOutOfStock) {
+            stokColor = 'bg-slate-500';
+        } else if (stok > 10) {
+            stokColor = 'bg-green-500';
+        } else if (stok > 4) {
+            stokColor = 'bg-amber-500';
+        } else {
+            stokColor = 'bg-red-500';
         }
+        
+        const imageContent = item.gambar 
+            ? `<img src="${item.gambar}" class="transition-transform duration-300 group-hover:scale-110">`
+            : `<div class="logo-placeholder"><i class="fas fa-prescription-bottle-alt text-3xl opacity-30"></i></div>`;
+
+        const batchHTML = (item.no_batch && item.no_batch !== '-') 
+            ? `<p class="text-[9px] text-amber-600 font-bold mb-1">Batch: ${item.no_batch}</p>` 
+            : '';
+
+        const card = document.createElement('div');
+        // TAMBAHKAN CLASS out-of-stock jika stok <= 0
+        card.className = `prod-item product-card luxury-card cursor-pointer group ${isOutOfStock ? 'out-of-stock' : ''}`;
+        // Hanya beri onclick jika stok > 0
+        if (!isOutOfStock) {
+            card.onclick = () => addToCart(id);
+        } else {
+            card.onclick = () => toast('Stok Habis!', 'error');
+        }
+        
+        card.innerHTML = `
+            <div class="image-box">
+                ${imageContent}
+                <span class="badge-exp">${formatIndoDate(item.expired)}</span>
+                <span class="badge-farmasi ${badge.css}">${badge.txt}</span>
+                <span class="badge-stok-circle ${stokColor}">${stok}</span>
+            </div>
+            <div class="p-3 flex-1 flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-[11px] uppercase truncate text-slate-800 mb-0.5">${item.nama}</h3>
+                    ${batchHTML}
+                </div>
+                <p class="text-blue-600 font-extrabold text-[12px] md:text-[13px] mt-1.5">Rp ${(item.harga_biji || 0).toLocaleString('id-ID')}</p>
+            </div>
+        `;
+        
+        card.setAttribute('data-category', item.kategori || 'LAINNYA');
+        const batchSearch = item.no_batch ? ' ' + item.no_batch.toLowerCase() : '';
+        card.setAttribute('data-name', (item.nama || '').toLowerCase() + batchSearch);
+        container.appendChild(card);
+    });
+    filterCari();
+}
 
     function renderAdminTable() {
     const tbody = document.getElementById('admin-table-body');
